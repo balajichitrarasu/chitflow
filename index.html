@@ -1339,21 +1339,35 @@
 
 <script>
 const supabaseUrl = "https://zpbzudvcbelprnjiscgj.supabase.co";
-const supabaseKey = "sb_publishable_8edddMqlOitkPn0HE-FGug_5jXdcyw4";
+const supabaseKey = "PASTE_YOUR_CURRENT_KEY_HERE";
 
 const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-async function testConnection() {
-  const { data, error } = await db
-    .from("members")
-    .select("*")
-    .limit(5);
+async function loadMembers() {
+  const { data, error } = await db.from("members").select("*");
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  const list = document.getElementById("membersList");
+  list.innerHTML = "";
+
+  data.forEach(m => {
+    list.innerHTML += `
+      <div>
+        <h3>${m.name || ""}</h3>
+        <p>${m.phone || ""}</p>
+        <p>${m.email || ""}</p>
+        <hr>
+      </div>
+    `;
+  });
 }
 
-testConnection();
+loadMembers();
+</script>
 </script>
 </body>
 </html>
