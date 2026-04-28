@@ -1333,17 +1333,16 @@
       btn.classList.add('active');
     });
   });
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const supabaseUrl = "https://zpbzudvcbelprnjiscgj.supabase.co";
 const supabaseKey = "sb_publishable_8edddMqlOitkPn0HE-FGug_5jXdcyw4";
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 async function testConnection() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("members")
     .select("*")
     .limit(5);
