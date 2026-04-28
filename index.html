@@ -1334,5 +1334,25 @@
     });
   });
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const supabaseUrl = "https://zpbzudvcbelprnjiscgj.supabase.co";
+const supabaseKey = "sb_publishable_8edddMqlOitkPn0HE-FGug_5jXdcyw4";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+async function testConnection() {
+  const { data, error } = await supabase
+    .from("members")
+    .select("*")
+    .limit(5);
+
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
+}
+
+testConnection();
+</script>
 </body>
 </html>
