@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ChitFlow Pro — Complete Chit Fund System</title>
+<script type="importmap">
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
+</script>
+<script type="module">
+// ── Import Supabase via ESM (avoids DataCloneError with Headers) ──
+import { createClient } from '@supabase/supabase-js';
+window.__supabaseCreateClient = createClient;
+window.__supabaseReady = true;
+window.dispatchEvent(new Event('supabase-ready'));
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#07090f; --surface:#0d1117; --card:#111827; --card2:#161f2e;
+  --border:#1e2d40; --border2:#243447;
+  --accent:#00e5c3; --accent-dim:rgba(0,229,195,0.12);
+  --gold:#f59e0b; --gold-dim:rgba(245,158,11,0.12);
+  --purple:#818cf8; --purple-dim:rgba(129,140,248,0.12);
+  --red:#f43f5e; --red-dim:rgba(244,63,94,0.12);
+  --blue:#38bdf8; --blue-dim:rgba(56,189,248,0.12);
+  --txt:#e2e8f0; --txt2:#94a3b8; --txt3:#475569;
+  --radius:14px; --radius-sm:8px; --radius-lg:20px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --glow:0 0 32px rgba(0,229,195,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;}
+
+/* ── SUPABASE CONFIG SCREEN ── */
+#configScreen{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.config-box{
+  width:460px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:40px;
+  box-shadow:var(--shadow),var(--glow);
+}
+.config-logo{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.config-logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),#00a07a);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.config-logo-text{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-1px;}
+.config-logo-text span{color:var(--accent);}
+.config-sub{font-size:12px;color:var(--txt2);margin-bottom:32px;margin-top:4px;}
+.config-label{font-size:11px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.config-input{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:11px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--txt);
+  outline:none;margin-bottom:14px;transition:border-color .15s;
+}
+.config-input:focus{border-color:var(--accent);}
+.config-hint{font-size:10px;color:var(--txt3);margin-bottom:20px;line-height:1.6;}
+.config-hint a{color:var(--accent);text-decoration:none;}
+.config-btn{
+  width:100%;padding:13px;background:var(--accent);border:none;
+  border-radius:var(--radius-sm);font-family:'Sora',sans-serif;
+  font-size:14px;font-weight:700;color:#000;cursor:pointer;
+  transition:all .15s;
+}
+.config-btn:hover{background:#00c4a7;transform:translateY(-1px);}
+.config-demo{
+  margin-top:14px;text-align:center;font-size:11px;color:var(--txt3);
+  cursor:pointer;text-decoration:underline;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:220px;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+  transition:transform .25s;
+}
+.logo-area{padding:22px 18px 18px;border-bottom:1px solid var(--border);}
+.logo-wrap{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#00a07a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.logo-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;letter-spacing:-.5px;}
+.logo-name span{color:var(--accent);}
+.logo-ver{font-size:9px;color:var(--txt3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:1px;}
+
+.branch-pill{
+  margin:12px;padding:9px 12px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;
+  justify-content:space-between;transition:border-color .15s;
+}
+.branch-pill:hover{border-color:var(--gold);}
+.branch-nm{font-size:11px;font-weight:700;color:var(--gold);}
+.branch-lbl{font-size:9px;color:var(--txt3);margin-top:1px;}
+
+nav{flex:1;padding:6px 10px;overflow-y:auto;}
+nav::-webkit-scrollbar{width:0;}
+.nav-grp{margin-bottom:16px;}
+.nav-grp-title{font-size:9px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;padding:0 8px;margin-bottom:6px;font-family:'JetBrains Mono',monospace;}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;
+  font-size:12px;font-weight:500;color:var(--txt2);margin-bottom:1px;
+  position:relative;user-select:none;
+}
+.nav-item:hover{background:var(--card);color:var(--txt);}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:65%;background:var(--accent);border-radius:0 2px 2px 0;}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:10px;}
+.nav-badge.g{background:var(--gold);}
+.nav-badge.p{background:var(--purple);}
+.nav-lock{margin-left:auto;font-size:10px;opacity:.4;}
+
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);}
+.user-pill{display:flex;align-items:center;gap:9px;padding:9px;background:var(--card);border-radius:var(--radius-sm);}
+.user-av{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--purple),#4f46e5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.user-nm{font-size:11px;font-weight:700;}
+.user-rl{font-size:9px;color:var(--txt3);}
+.logout-btn{margin-left:auto;font-size:16px;cursor:pointer;opacity:.5;transition:opacity .15s;}
+.logout-btn:hover{opacity:1;}
+
+/* ── MAIN ── */
+.main{margin-left:220px;padding:28px 30px;min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.page-title span{color:var(--accent);}
+.page-sub{font-size:11px;color:var(--txt2);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 18px;border-radius:var(--radius-sm);border:none;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#00c4a7;transform:translateY(-1px);}
+.btn-ghost{background:var(--card);color:var(--txt);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);background:var(--card2);}
+.btn-gold{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(245,158,11,.3);}
+.btn-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(244,63,94,.3);}
+.btn-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(129,140,248,.3);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.btn-xs{padding:4px 8px;font-size:10px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:default;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.c::after{background:linear-gradient(90deg,var(--accent),transparent);}
+.stat-card.g::after{background:linear-gradient(90deg,var(--gold),transparent);}
+.stat-card.p::after{background:linear-gradient(90deg,var(--purple),transparent);}
+.stat-card.r::after{background:linear-gradient(90deg,var(--red),transparent);}
+.stat-card.b::after{background:linear-gradient(90deg,var(--blue),transparent);}
+.stat-lbl{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.stat-val{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;}
+.stat-val.c{color:var(--accent);}
+.stat-val.g{color:var(--gold);}
+.stat-val.p{color:var(--purple);}
+.stat-val.r{color:var(--red);}
+.stat-val.b{color:var(--blue);}
+.stat-chg{font-size:10px;color:var(--txt3);margin-top:5px;}
+.stat-chg.up{color:var(--accent);}
+.stat-ico{position:absolute;right:14px;top:14px;font-size:26px;opacity:.12;}
+
+/* ── PANELS ── */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.panel-hd{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:13px;font-weight:700;}
+.panel-action{font-size:11px;color:var(--accent);cursor:pointer;font-weight:600;}
+.panel-body{padding:18px;}
+.panel-body-0{padding:0;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl th{text-align:left;padding:9px 14px;color:var(--txt3);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--border);}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(30,45,64,.4);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.015);}
+.tbl-empty{text-align:center;padding:40px!important;color:var(--txt3);}
+
+/* ── MEMBER CELL ── */
+.mc{display:flex;align-items:center;gap:9px;}
+.av{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.av-g{background:rgba(0,229,195,.15);}
+.av-p{background:rgba(129,140,248,.15);}
+.av-o{background:rgba(245,158,11,.15);}
+.av-r{background:rgba(244,63,94,.15);}
+.av-b{background:rgba(56,189,248,.15);}
+.mn{font-weight:700;font-size:11px;}
+.mid{font-size:9px;color:var(--txt3);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:.3px;}
+.badge-active{background:rgba(0,229,195,.1);color:var(--accent);}
+.badge-pending{background:var(--gold-dim);color:var(--gold);}
+.badge-overdue{background:var(--red-dim);color:var(--red);}
+.badge-completed{background:var(--purple-dim);color:var(--purple);}
+.badge-upcoming{background:var(--blue-dim);color:var(--blue);}
+.badge-open{background:rgba(0,229,195,.2);color:var(--accent);}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── AMOUNTS ── */
+.amt{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;}
+.amt-c{color:var(--accent);}
+.amt-r{color:var(--red);}
+.amt-g{color:var(--gold);}
+
+/* ── GRID LAYOUTS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.grid-lr{display:grid;grid-template-columns:1fr 360px;gap:18px;}
+.gap{gap:18px;}
+.mb{margin-bottom:18px;}
+
+/* ── PROGRESS ── */
+.prog-bar{background:var(--border);border-radius:4px;height:5px;overflow:hidden;margin:7px 0;}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s;}
+.prog-c{background:linear-gradient(90deg,var(--accent),#00a07a);}
+.prog-g{background:linear-gradient(90deg,var(--gold),#d97706);}
+.prog-p{background:linear-gradient(90deg,var(--purple),#6366f1);}
+
+/* ── CHIT GROUP CARD ── */
+.cg-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .15s;cursor:pointer;}
+.cg-card:hover{border-color:var(--accent);background:rgba(0,229,195,.03);}
+.cg-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.cg-nm{font-size:13px;font-weight:800;}
+.cg-meta{font-size:9px;color:var(--txt3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.cg-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+.cg-stat{font-size:9px;color:var(--txt3);}
+.cg-stat-v{font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--txt);margin-top:2px;}
+
+/* ── AUCTION CARD ── */
+.auc-card{background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
+.auc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.auc-timer{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);background:var(--gold-dim);padding:4px 10px;border-radius:6px;}
+.bid-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;}
+.bid-item{text-align:center;padding:10px;background:rgba(0,0,0,.2);border-radius:8px;}
+.bid-lbl{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;}
+.bid-val{font-size:18px;font-weight:900;font-family:'JetBrains Mono',monospace;margin-top:4px;}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg-full{grid-column:1/-1;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:10px;color:var(--txt2);font-weight:700;text-transform:uppercase;letter-spacing:.6px;}
+.fi,.fs,.ft{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:10px 12px;font-family:'Sora',sans-serif;font-size:12px;color:var(--txt);
+  outline:none;transition:border-color .15s;width:100%;
+}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--accent);}
+.fs{cursor:pointer;}
+.ft{resize:vertical;min-height:70px;}
+.fi-calc{font-family:'JetBrains Mono',monospace;color:var(--accent);background:rgba(0,229,195,.05);}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-ov.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(16px);transition:transform .2s;position:relative;}
+.modal-ov.open .modal{transform:translateY(0);}
+.modal-title{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px;}
+.modal-sub{font-size:11px;color:var(--txt3);margin-bottom:22px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.modal-close{position:absolute;top:18px;right:18px;background:none;border:none;color:var(--txt2);font-size:20px;cursor:pointer;line-height:1;}
+
+/* ── ALERT BANNER ── */
+.alert{background:var(--red-dim);border:1px solid rgba(244,63,94,.25);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:10px;font-size:12px;}
+.alert-info{background:var(--blue-dim);border-color:rgba(56,189,248,.25);}
+.alert-gold{background:var(--gold-dim);border-color:rgba(245,158,11,.25);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:18px;}
+.tab{flex:1;padding:8px;border-radius:7px;border:none;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--txt3);background:none;transition:all .15s;}
+.tab.active{background:var(--card);color:var(--txt);}
+
+/* ── NOTIF ── */
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(30,45,64,.4);}
+.notif-item:last-child{border-bottom:none;}
+.notif-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.notif-txt{font-size:11px;color:var(--txt2);line-height:1.5;}
+.notif-txt strong{color:var(--txt);}
+.notif-time{font-size:9px;color:var(--txt3);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--txt3);gap:10px;font-size:12px;}
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.anim{animation:fadeUp .35s ease both;}
+.anim-1{animation-delay:.05s}
+.anim-2{animation-delay:.1s}
+.anim-3{animation-delay:.15s}
+.anim-4{animation-delay:.2s}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.5s infinite;margin-right:6px;}
+
+/* ── CHART ── */
+.mini-chart{height:80px;display:flex;align-items:flex-end;gap:4px;}
+.bar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:3px 3px 0 0;transition:height .5s;min-height:4px;}
+.bar-lbl{font-size:8px;color:var(--txt3);font-family:'JetBrains Mono',monospace;}
+
+/* ── GST CARD ── */
+.gst-card{background:linear-gradient(135deg,rgba(129,140,248,.06),rgba(99,102,241,.02));border:1px solid rgba(129,140,248,.2);border-radius:var(--radius);padding:16px;}
+
+/* ── BRANCH CARD ── */
+.branch-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .15s;cursor:pointer;}
+.branch-card:hover{border-color:var(--purple);}
+.branch-card.selected{border-color:var(--accent);background:var(--accent-dim);}
+
+/* ── QUICK ACTIONS ── */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qa-btn{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .15s;text-align:center;}
+.qa-btn:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-1px);}
+.qa-icon{font-size:22px;margin-bottom:6px;}
+.qa-lbl{font-size:11px;font-weight:700;}
+.qa-sub{font-size:9px;color:var(--txt3);margin-top:2px;}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9000;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;animation:fadeUp .3s ease;border:1px solid;}
+.toast-s{background:rgba(0,229,195,.15);border-color:var(--accent);color:var(--accent);}
+.toast-e{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.toast-i{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .grid-lr{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+}
+
+/* ── SECTION HIDE/SHOW ── */
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── WHATSAPP ── */
+.wa-preview{background:linear-gradient(135deg,#075e54,#128c7e);border-radius:var(--radius);padding:20px;color:#fff;}
+.wa-bubble{background:rgba(255,255,255,.15);border-radius:0 12px 12px 12px;padding:12px 14px;font-size:12px;line-height:1.6;max-width:85%;margin-top:12px;}
+.wa-meta{font-size:9px;opacity:.7;margin-top:6px;text-align:right;}
+.wa-template{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+.wa-template:hover{border-color:var(--accent);}
+.wa-template.selected{border-color:var(--accent);background:var(--accent-dim);}
+.wa-template-nm{font-size:12px;font-weight:700;}
+.wa-template-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
+
+/* ── AUCTION BID TABLE ── */
+.bid-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.bid-row:last-child{border-bottom:none;}
+.bid-rank{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.bid-rank-1{background:var(--gold-dim);color:var(--gold);}
+.bid-rank-n{background:var(--surface);color:var(--txt3);}
+
+/* ── REPORT CARDS ── */
+.report-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s;}
+.report-card:hover{border-color:var(--accent);}
+.report-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+/* ── INLINE EDIT ── */
+.editable{cursor:pointer;border-bottom:1px dashed var(--border);padding-bottom:1px;}
+.editable:hover{color:var(--accent);border-color:var(--accent);}
+
+/* ── SECTION-SPECIFIC HEADERS ── */
+.section-badge{display:inline-flex;padding:4px 10px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.sb-p1{background:var(--accent-dim);color:var(--accent);}
+.sb-p2{background:var(--gold-dim);color:var(--gold);}
+.sb-p3{background:var(--purple-dim);color:var(--purple);}
+
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SUPABASE CONFIG SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="configScreen">
+  <div class="config-box">
+    <div class="config-logo">
+      <div class="config-logo-icon">🪙</div>
+      <div>
+        <div class="config-logo-text">Chit<span>Flow</span> Pro</div>
+      </div>
+    </div>
+    <div class="config-sub">Complete Chit Fund Management — Phase 1 + 2 + 3</div>
+
+    <div class="config-label">Supabase Project URL</div>
+    <input class="config-input" id="sbUrl" placeholder="https://xyzabc.supabase.co" autocomplete="off"/>
+
+    <div class="config-label">Supabase Anon Key</div>
+    <input class="config-input" id="sbKey" type="password" placeholder="eyJhbGci..." autocomplete="off"/>
+
+    <div class="config-hint">
+      Find these in your Supabase project → Settings → API.<br>
+      <a href="https://supabase.com/dashboard" target="_blank">Open Supabase Dashboard →</a><br>
+      Run the SQL schema from <strong>01_database_schema.sql</strong> in your SQL editor first.
+    </div>
+
+    <button class="config-btn" onclick="initSupabase()">Connect & Launch ChitFlow</button>
+    <div class="config-demo" onclick="loadDemo()">🎭 Load with Demo Data (no Supabase needed)</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo-wrap">
+      <div class="logo-icon">🪙</div>
+      <div>
+        <div class="logo-name">Chit<span>Flow</span></div>
+        <div class="logo-ver">PHASE 1·2·3 COMPLETE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="branch-pill" onclick="nav('branches')">
+    <div>
+      <div class="branch-nm" id="activeBranchName">Chennai HQ</div>
+      <div class="branch-lbl">Switch Branch</div>
+    </div>
+    <span style="color:var(--txt3);font-size:11px;">▾</span>
+  </div>
+
+  <nav>
+    <div class="nav-grp">
+      <div class="nav-grp-title">Overview</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">⊞</span>Dashboard</div>
+    </div>
+    <div class="nav-grp">
+      <div class="nav-grp-title">Phase 1 — Core</div>
+      <div class="nav-item" onclick="nav('members')"><span class="nav-icon">👥</span>Members<span class="nav-badge" id="nb-members">0</span></div>
+      <div class="nav-item" onclick="nav('chits')"><span class="nav-icon">📋</span>Chit Groups<span class="nav-badge g" id="nb-chits">0</span></div>
+      <div class="nav-item" onclick="nav('collection')"><span class="nav-icon">💳</span>Collection<span class="nav-badge" id="nb-pending">0</span></div>
+      <div class="nav-item" onclick="nav('reports')"><span class="nav-icon">📊</span>Reports</div>
+    </div>
+    <div class="nav-grp">
+      <div class="nav-grp-title">Phase 2 — Advanced</div>
+      <div class="nav-item" onclick="nav('auctions')"><span class="nav-icon">🔨</span>Auctions<span class="nav-badge g" id="nb-auctions">0</span></div>
+      <div class="nav-item" onclick="nav('whatsapp')"><span class="nav-icon">💬</span>WhatsApp</div>
+      <div class="nav-item" onclick="nav('gst')"><span class="nav-icon">🧾</span>GST Module</div>
+    </div>
+    <div class="nav-grp">
+      <div class="nav-grp-title">Phase 3 — Scale</div>
+      <div class="nav-item" onclick="nav('branches')"><span class="nav-icon">🏢</span>Multi-Branch</div>
+      <div class="nav-item" onclick="nav('analytics')"><span class="nav-icon">📈</span>Analytics</div>
+      <div class="nav-item" onclick="nav('agents')"><span class="nav-icon">🧑‍💼</span>Agents</div>
+      <div class="nav-item" onclick="nav('settings')"><span class="nav-icon">⚙️</span>Settings</div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-av" id="userAv">A</div>
+      <div>
+        <div class="user-nm" id="userName">Admin</div>
+        <div class="user-rl" id="userRole">Super Admin</div>
+      </div>
+      <div class="logout-btn" onclick="logout()">⏻</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main" id="mainContent">
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div class="section active anim" id="sec-dashboard">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Good Morning, <span id="greetName">Admin</span> 👋</div>
+      <div class="page-sub" id="todayDate">Loading...</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="exportReport()">📥 Export</button>
+      <button class="btn btn-primary" onclick="openModal('addCollection')">+ Record Payment</button>
+    </div>
+  </div>
+
+  <div id="overdueAlert" class="alert" style="display:none">
+    ⚠️ &nbsp;<span id="overdueMsg"></span>
+    <span style="margin-left:auto;color:var(--red);font-weight:700;cursor:pointer" onclick="nav('collection')">View All →</span>
+  </div>
+
+  <div class="stats-row anim anim-1">
+    <div class="stat-card c"><div class="stat-ico">💰</div><div class="stat-lbl">Today's Collection</div><div class="stat-val c" id="s-today">₹0</div><div class="stat-chg" id="s-today-sub">Loading...</div></div>
+    <div class="stat-card g"><div class="stat-ico">👥</div><div class="stat-lbl">Active Members</div><div class="stat-val g" id="s-members">0</div><div class="stat-chg up" id="s-members-sub">—</div></div>
+    <div class="stat-card p"><div class="stat-ico">📋</div><div class="stat-lbl">Active Chit Groups</div><div class="stat-val p" id="s-chits">0</div><div class="stat-chg" id="s-chits-sub">—</div></div>
+    <div class="stat-card r"><div class="stat-ico">⏰</div><div class="stat-lbl">Pending Dues</div><div class="stat-val r" id="s-dues">₹0</div><div class="stat-chg" id="s-dues-sub">—</div></div>
+  </div>
+
+  <div class="grid-lr anim anim-2">
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title"><span class="live-dot"></span>Today's Collections</div><span class="panel-action" onclick="nav('collection')">View All →</span></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Member</th><th>Group</th><th>Mode</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="dash-collections"><tr><td colspan="5" class="tbl-empty"><div class="loading"><div class="spin"></div>Loading...</div></td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">Active Chit Groups</div><span class="panel-action" onclick="nav('chits')">Manage →</span></div>
+        <div class="panel-body" id="dash-chits"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">Quick Actions</div></div>
+        <div class="panel-body">
+          <div class="qa-grid">
+            <div class="qa-btn" onclick="openModal('addMember')"><div class="qa-icon">👤</div><div class="qa-lbl">Add Member</div><div class="qa-sub">KYC Registration</div></div>
+            <div class="qa-btn" onclick="openModal('addChit')"><div class="qa-icon">📋</div><div class="qa-lbl">New Chit Group</div><div class="qa-sub">Create & Schedule</div></div>
+            <div class="qa-btn" onclick="openModal('addCollection')"><div class="qa-icon">💳</div><div class="qa-lbl">Record Payment</div><div class="qa-sub">Cash/UPI/Bank</div></div>
+            <div class="qa-btn" onclick="openModal('scheduleAuction')"><div class="qa-icon">🔨</div><div class="qa-lbl">Schedule Auction</div><div class="qa-sub">Set Bid Date</div></div>
+            <div class="qa-btn" onclick="nav('whatsapp')"><div class="qa-icon">💬</div><div class="qa-lbl">Send Reminder</div><div class="qa-sub">WhatsApp Bulk</div></div>
+            <div class="qa-btn" onclick="nav('reports')"><div class="qa-icon">📄</div><div class="qa-lbl">Generate Report</div><div class="qa-sub">PDF / Export</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">🔨 Upcoming Auctions</div><span class="panel-action" onclick="nav('auctions')">All →</span></div>
+        <div class="panel-body" id="dash-auctions"><div class="loading"><div class="spin"></div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">Recent Activity</div></div>
+        <div class="panel-body" id="dash-activity" style="padding-top:8px;padding-bottom:8px">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MEMBERS ═══════════════ -->
+<div class="section anim" id="sec-members">
+  <div class="topbar">
+    <div><div class="page-title">Member <span>Management</span></div><div class="page-sub" id="members-sub">Loading members...</div></div>
+    <div class="topbar-right"><button class="btn btn-ghost btn-sm" onclick="exportMembers()">📥 Export CSV</button><button class="btn btn-primary" onclick="openModal('addMember')">+ Add Member</button></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="filterMembers('all',this)">All Members</button>
+    <button class="tab" onclick="filterMembers('pending',this)">Pending KYC</button>
+    <button class="tab" onclick="filterMembers('defaulter',this)">Defaulters</button>
+    <button class="tab" onclick="filterMembers('active',this)">Active</button>
+  </div>
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="panel-title" id="members-count">All Members</div>
+      <input class="fi" style="width:200px;padding:6px 10px;font-size:11px" placeholder="🔍 Search name / phone..." oninput="searchMembers(this.value)" id="memberSearch"/>
+    </div>
+    <div class="panel-body-0">
+      <table class="tbl"><thead><tr><th style="padding-left:16px">Member</th><th>Phone</th><th>Groups</th><th>KYC</th><th>Dues</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="members-table"><tr><td colspan="7" class="tbl-empty"><div class="loading"><div class="spin"></div>Loading members...</div></td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CHIT GROUPS ═══════════════ -->
+<div class="section anim" id="sec-chits">
+  <div class="topbar">
+    <div><div class="page-title">Chit <span>Groups</span></div><div class="page-sub" id="chits-sub">Loading...</div></div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openModal('addChit')">+ New Chit Group</button></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="filterChits('all',this)">All Groups</button>
+    <button class="tab" onclick="filterChits('active',this)">Active</button>
+    <button class="tab" onclick="filterChits('upcoming',this)">Upcoming</button>
+    <button class="tab" onclick="filterChits('completed',this)">Completed</button>
+  </div>
+  <div id="chits-grid" class="grid-3">
+    <div style="grid-column:1/-1"><div class="loading"><div class="spin"></div>Loading chit groups...</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ COLLECTION ═══════════════ -->
+<div class="section anim" id="sec-collection">
+  <div class="topbar">
+    <div><div class="page-title">Collection <span>Module</span></div><div class="page-sub" id="collection-sub">Daily register</div></div>
+    <div class="topbar-right">
+      <input type="date" class="fi" style="width:140px;font-size:11px;padding:7px 10px" id="collDate" onchange="loadCollection()"/>
+      <button class="btn btn-ghost btn-sm" onclick="printRegister()">🖨️ Print</button>
+      <button class="btn btn-primary" onclick="openModal('addCollection')">+ Record Payment</button>
+    </div>
+  </div>
+  <div class="grid-lr">
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">📋 Collection Register</div><span class="panel-action" onclick="loadCollection()">↺ Refresh</span></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Member</th><th>Group</th><th>Month</th><th>Amount</th><th>Penalty</th><th>Mode</th><th>Status</th><th>Receipt</th></tr></thead>
+          <tbody id="coll-table"><tr><td colspan="8" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">⏰ Overdue Payments</div><button class="btn btn-gold btn-sm" onclick="sendBulkReminders()">💬 Send All Reminders</button></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Member</th><th>Group</th><th>Month</th><th>Due Date</th><th>Amount</th><th>Penalty</th><th>Action</th></tr></thead>
+          <tbody id="overdue-table"><tr><td colspan="7" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">Today's Breakdown</div></div>
+        <div class="panel-body" id="coll-breakdown">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">⚡ Penalty Calculator</div></div>
+        <div class="panel-body">
+          <div class="fg mb" style="margin-bottom:10px"><div class="fl">Base Amount (₹)</div><input class="fi" id="pen-base" type="number" placeholder="5000" oninput="calcPenalty()"/></div>
+          <div class="fg mb" style="margin-bottom:14px"><div class="fl">Days Late</div><input class="fi" id="pen-days" type="number" placeholder="15" oninput="calcPenalty()"/></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><div style="color:var(--txt3)">Rate</div><div class="amt" id="pen-rate">5% / month</div></div>
+              <div><div style="color:var(--txt3)">Penalty</div><div class="amt amt-r" id="pen-amt">₹0</div></div>
+              <div><div style="color:var(--txt3)">Base</div><div class="amt" id="pen-base-d">₹0</div></div>
+              <div><div style="color:var(--txt3)">Total Due</div><div class="amt amt-g" id="pen-total">₹0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">Payment Modes</div></div>
+        <div class="panel-body" id="mode-breakdown">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AUCTIONS (Phase 2) ═══════════════ -->
+<div class="section anim" id="sec-auctions">
+  <div class="topbar">
+    <div>
+      <div class="section-badge sb-p2">Phase 2</div>
+      <div class="page-title">Auction <span>Module</span></div>
+      <div class="page-sub">Monthly bid management — core business logic</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-gold" onclick="openModal('scheduleAuction')">+ Schedule Auction</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card g"><div class="stat-ico">🔨</div><div class="stat-lbl">Total Auctions</div><div class="stat-val g" id="auc-total">0</div><div class="stat-chg">All time</div></div>
+    <div class="stat-card c"><div class="stat-ico">💰</div><div class="stat-lbl">Total Distributed</div><div class="stat-val c" id="auc-distributed">₹0</div><div class="stat-chg">Dividends paid</div></div>
+    <div class="stat-card p"><div class="stat-ico">🏆</div><div class="stat-lbl">Foreman Commission</div><div class="stat-val p" id="auc-commission">₹0</div><div class="stat-chg">Total earned</div></div>
+    <div class="stat-card b"><div class="stat-ico">📅</div><div class="stat-lbl">Upcoming</div><div class="stat-val b" id="auc-upcoming">0</div><div class="stat-chg">Scheduled</div></div>
+  </div>
+
+  <div class="grid-lr">
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">🔴 Open for Bidding</div></div>
+        <div id="open-auctions" class="panel-body"><div class="loading"><div class="spin"></div></div></div>
+      </div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">📅 Scheduled Auctions</div></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Group</th><th>Month</th><th>Date</th><th>Chit Value</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="auctions-table"><tr><td colspan="6" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">✅ Completed Auctions</div></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Group</th><th>Month</th><th>Winner</th><th>Bid Amount</th><th>Dividend/Member</th><th>Commission</th></tr></thead>
+          <tbody id="completed-auctions"><tr><td colspan="6" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">🧮 Auction Calculator</div></div>
+        <div class="panel-body">
+          <div class="fg" style="margin-bottom:10px"><div class="fl">Chit Value (₹)</div><input class="fi" id="calc-cv" type="number" placeholder="100000" oninput="calcAuction()"/></div>
+          <div class="fg" style="margin-bottom:10px"><div class="fl">No. of Members</div><input class="fi" id="calc-nm" type="number" placeholder="20" oninput="calcAuction()"/></div>
+          <div class="fg" style="margin-bottom:10px"><div class="fl">Winning Bid (₹)</div><input class="fi" id="calc-bid" type="number" placeholder="85000" oninput="calcAuction()"/></div>
+          <div class="fg" style="margin-bottom:14px"><div class="fl">Foreman Commission %</div><input class="fi" id="calc-comm" type="number" placeholder="5" value="5" oninput="calcAuction()"/></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px">
+              <div><div style="color:var(--txt3)">Discount</div><div class="amt amt-c" id="calc-discount">—</div></div>
+              <div><div style="color:var(--txt3)">Foreman Gets</div><div class="amt amt-r" id="calc-foreman">—</div></div>
+              <div><div style="color:var(--txt3)">Pool to Share</div><div class="amt" id="calc-pool">—</div></div>
+              <div><div style="color:var(--txt3)">Dividend/Member</div><div class="amt amt-g" id="calc-div">—</div></div>
+              <div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px"><div style="color:var(--txt3)">Winner Receives</div><div class="amt amt-c" style="font-size:18px" id="calc-winner">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">📊 Recent Auction History</div></div>
+        <div class="panel-body" id="auc-history"><div class="loading"><div class="spin"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ WHATSAPP (Phase 2) ═══════════════ -->
+<div class="section anim" id="sec-whatsapp">
+  <div class="topbar">
+    <div>
+      <div class="section-badge sb-p2">Phase 2</div>
+      <div class="page-title">WhatsApp <span>Notifications</span></div>
+      <div class="page-sub">Bulk messaging & automated reminders</div>
+    </div>
+  </div>
+  <div class="alert alert-gold">⚙️ &nbsp;Connect WhatsApp Business API: Set TWILIO_SID and TWILIO_TOKEN in Settings, or use Gupshup for India-specific rates.</div>
+  <div class="grid-3">
+    <div style="grid-column:span 2">
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">Message Templates</div></div>
+        <div class="panel-body">
+          <div class="wa-template selected" onclick="selectTemplate(this,'payment_receipt')">
+            <div class="wa-template-nm">✅ Payment Receipt</div>
+            <div class="wa-template-sub">Sent after every payment is recorded</div>
+          </div>
+          <div class="wa-template" onclick="selectTemplate(this,'due_reminder')">
+            <div class="wa-template-nm">⏰ Due Reminder</div>
+            <div class="wa-template-sub">3 days before due date — auto-scheduled</div>
+          </div>
+          <div class="wa-template" onclick="selectTemplate(this,'overdue_alert')">
+            <div class="wa-template-nm">🚨 Overdue Alert</div>
+            <div class="wa-template-sub">Triggered when payment passes due date</div>
+          </div>
+          <div class="wa-template" onclick="selectTemplate(this,'auction_announcement')">
+            <div class="wa-template-nm">🔨 Auction Announcement</div>
+            <div class="wa-template-sub">Sent 3 days before auction to all members</div>
+          </div>
+          <div class="wa-template" onclick="selectTemplate(this,'winner_notification')">
+            <div class="wa-template-nm">🏆 Winner Notification</div>
+            <div class="wa-template-sub">Sent to auction winner immediately after finalization</div>
+          </div>
+          <div class="wa-template" onclick="selectTemplate(this,'dividend_credit')">
+            <div class="wa-template-nm">💰 Dividend Credit</div>
+            <div class="wa-template-sub">Notifies members of dividend deduction from next installment</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">📤 Send Bulk Message</div></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="fg fg-full"><div class="fl">Target Group</div>
+              <select class="fs" id="wa-target">
+                <option value="all_overdue">All Overdue Members</option>
+                <option value="all_active">All Active Members</option>
+                <option value="chit_group">Specific Chit Group</option>
+                <option value="custom">Custom — select members</option>
+              </select>
+            </div>
+            <div class="fg"><div class="fl">Template</div>
+              <select class="fs" id="wa-template-sel">
+                <option>Payment Receipt</option><option>Due Reminder</option>
+                <option>Overdue Alert</option><option>Auction Announcement</option>
+              </select>
+            </div>
+            <div class="fg"><div class="fl">Schedule</div>
+              <select class="fs"><option>Send Now</option><option>Schedule for 9 AM</option><option>Custom Time</option></select>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn btn-ghost" onclick="previewWaMessage()">👁 Preview</button>
+            <button class="btn btn-primary" onclick="sendBulkWA()">💬 Send Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">Message Preview</div></div>
+        <div class="panel-body">
+          <div class="wa-preview">
+            <div style="font-size:10px;opacity:.7;margin-bottom:8px">WhatsApp Business</div>
+            <div class="wa-bubble" id="wa-preview-text">
+              ✅ <strong>ChitFlow Receipt</strong><br><br>
+              Dear Kumar Selvam,<br>
+              ₹5,000 received for <strong>Group A</strong> (Month 13).<br>
+              Receipt No: RCP-2025-000042<br>
+              Date: 29/04/2025<br>
+              Mode: UPI<br><br>
+              Thank you! 🙏
+              <div class="wa-meta">10:34 AM ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">Send Stats</div></div>
+        <div class="panel-body" id="wa-stats">
+          <div style="display:grid;gap:10px;font-size:12px">
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span style="color:var(--txt3)">Sent Today</span><span class="amt amt-c" id="wa-sent">0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span style="color:var(--txt3)">Delivered</span><span class="amt amt-g" id="wa-delivered">0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span style="color:var(--txt3)">Failed</span><span class="amt amt-r" id="wa-failed">0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span style="color:var(--txt3)">Pending</span><span class="amt" id="wa-pending">0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">Auto-Reminders</div></div>
+        <div class="panel-body">
+          <div style="font-size:11px;display:grid;gap:10px">
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+              <span>3-day due reminder</span>
+              <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--accent)"/>
+            </label>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+              <span>Overdue daily alert</span>
+              <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--accent)"/>
+            </label>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+              <span>Auction announcement</span>
+              <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--accent)"/>
+            </label>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+              <span>Payment receipt</span>
+              <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--accent)"/>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GST MODULE (Phase 2) ═══════════════ -->
+<div class="section anim" id="sec-gst">
+  <div class="topbar">
+    <div>
+      <div class="section-badge sb-p2">Phase 2</div>
+      <div class="page-title">GST <span>Module</span></div>
+      <div class="page-sub">Tax invoicing, filing status & reports</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="exportGSTJSON()">⬇️ Export JSON (GSTN)</button>
+      <button class="btn btn-purple" onclick="openModal('addGSTInvoice')">+ Generate Invoice</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card p"><div class="stat-lbl">Total Taxable Value</div><div class="stat-val p" id="gst-taxable">₹0</div><div class="stat-chg">This quarter</div></div>
+    <div class="stat-card c"><div class="stat-lbl">GST Collected</div><div class="stat-val c" id="gst-collected">₹0</div><div class="stat-chg">CGST + SGST</div></div>
+    <div class="stat-card g"><div class="stat-lbl">Invoices Generated</div><div class="stat-val g" id="gst-invoices">0</div><div class="stat-chg">This month</div></div>
+    <div class="stat-card b"><div class="stat-lbl">Filing Status</div><div class="stat-val b" style="font-size:14px;padding-top:4px" id="gst-status">Pending</div><div class="stat-chg">GSTR-1</div></div>
+  </div>
+  <div class="grid-lr">
+    <div>
+      <div class="panel mb">
+        <div class="panel-hd"><div class="panel-title">GST Invoices</div></div>
+        <div class="panel-body-0">
+          <table class="tbl"><thead><tr><th style="padding-left:16px">Invoice No.</th><th>Member</th><th>Date</th><th>Taxable</th><th>CGST (9%)</th><th>SGST (9%)</th><th>Total</th><th>PDF</th></tr></thead>
+          <tbody id="gst-table"><tr><td colspan="8" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="gst-card mb" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;margin-bottom:14px;color:var(--purple)">🧾 GST Invoice Preview</div>
+        <div style="font-size:11px;line-height:2;color:var(--txt2)">
+          <div style="display:flex;justify-content:space-between"><span>Taxable Value</span><span class="amt" id="gst-prev-tax">₹0</span></div>
+          <div style="display:flex;justify-content:space-between"><span>CGST @ 9%</span><span class="amt" id="gst-prev-cgst">₹0</span></div>
+          <div style="display:flex;justify-content:space-between"><span>SGST @ 9%</span><span class="amt" id="gst-prev-sgst">₹0</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><strong style="color:var(--txt)">Total Invoice</strong><span class="amt amt-p" id="gst-prev-total" style="font-size:16px">₹0</span></div>
+        </div>
+        <input class="fi fi-calc" style="margin-top:12px" type="number" placeholder="Enter taxable amount..." oninput="calcGST(this.value)"/>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><div class="panel-title">Filing Status</div></div>
+        <div class="panel-body">
+          <div style="display:grid;gap:10px;font-size:11px">
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>GSTR-1 (Outward)</span><span class="badge badge-pending">Pending</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>GSTR-3B (Summary)</span><span class="badge badge-pending">Pending</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>GSTIN</span><span class="amt" id="gst-gstin" style="font-size:10px">—</span></div>
+          </div>
+          <button class="btn btn-purple" style="width:100%;justify-content:center;margin-top:12px" onclick="exportGSTJSON()">⬇️ Download JSON for GSTN Portal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MULTI-BRANCH (Phase 3) ═══════════════ -->
+<div class="section anim" id="sec-branches">
+  <div class="topbar">
+    <div>
+      <div class="section-badge sb-p3">Phase 3</div>
+      <div class="page-title">Multi-Branch <span>Management</span></div>
+      <div class="page-sub">Central admin view across all branches</div>
+    </div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openModal('addBranch')">+ Add Branch</button></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card p"><div class="stat-ico">🏢</div><div class="stat-lbl">Total Branches</div><div class="stat-val p" id="br-total">0</div></div>
+    <div class="stat-card c"><div class="stat-lbl">Total Collection</div><div class="stat-val c" id="br-collection">₹0</div><div class="stat-chg">All branches</div></div>
+    <div class="stat-card g"><div class="stat-lbl">Total Members</div><div class="stat-val g" id="br-members">0</div></div>
+    <div class="stat-card b"><div class="stat-lbl">Active Groups</div><div class="stat-val b" id="br-groups">0</div></div>
+  </div>
+  <div class="grid-3" id="branches-grid">
+    <div style="grid-column:1/-1"><div class="loading"><div class="spin"></div>Loading branches...</div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <div class="panel-hd"><div class="panel-title">Branch Performance Comparison</div></div>
+    <div class="panel-body-0">
+      <table class="tbl"><thead><tr><th style="padding-left:16px">Branch</th><th>Members</th><th>Groups</th><th>Monthly Collection</th><th>Pending</th><th>Commission</th><th>Status</th></tr></thead>
+      <tbody id="branch-table"><tr><td colspan="7" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ANALYTICS (Phase 3) ═══════════════ -->
+<div class="section anim" id="sec-analytics">
+  <div class="topbar">
+    <div>
+      <div class="section-badge sb-p3">Phase 3</div>
+      <div class="page-title">Advanced <span>Analytics</span></div>
+      <div class="page-sub">Branch-wide performance & trends</div>
+    </div>
+    <div class="topbar-right">
+      <select class="fs" style="width:120px;font-size:11px;padding:7px 10px" id="analytics-year" onchange="loadAnalytics()">
+        <option>2025</option><option>2024</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="exportAnalytics()">📥 Export</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card c"><div class="stat-lbl">Total Revenue (YTD)</div><div class="stat-val c" id="an-revenue">₹0</div></div>
+    <div class="stat-card g"><div class="stat-lbl">Foreman Commission (YTD)</div><div class="stat-val g" id="an-commission">₹0</div></div>
+    <div class="stat-card p"><div class="stat-lbl">Dividends Paid (YTD)</div><div class="stat-val p" id="an-dividends">₹0</div></div>
+    <div class="stat-card r"><div class="stat-lbl">Penalties Collected</div><div class="stat-val r" id="an-penalties">₹0</div></div>
+  </div>
+  <div class="grid-2 mb">
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">Monthly Collection Trend</div></div>
+      <div class="panel-body">
+        <div class="mini-chart" id="monthly-chart" style="height:120px;gap:5px"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:9px;color:var(--txt3);font-family:'JetBrains Mono',monospace" id="chart-labels"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">Collection by Mode</div></div>
+      <div class="panel-body" id="mode-chart">
+        <div class="loading"><div class="spin"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">Top Performing Members</div></div>
+      <div class="panel-body-0">
+        <table class="tbl"><thead><tr><th style="padding-left:16px">Member</th><th>Groups</th><th>Total Paid</th><th>On Time</th></tr></thead>
+        <tbody id="top-members"><tr><td colspan="4" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">Auction Profit Summary</div></div>
+      <div class="panel-body-0">
+        <table class="tbl"><thead><tr><th style="padding-left:16px">Group</th><th>Auctions</th><th>Avg Discount</th><th>Commission</th></tr></thead>
+        <tbody id="auction-profit"><tr><td colspan="4" class="tbl-empty"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ REPORTS ═══════════════ -->
+<div class="section anim" id="sec-reports">
+  <div class="topbar">
+    <div><div class="page-title">Reports & <span>Exports</span></div><div class="page-sub">Generate, download & print all reports</div></div>
+  </div>
+  <div class="grid-3 mb">
+    <div class="report-card" onclick="genReport('collection_register')">
+      <div><div style="font-weight:700;font-size:13px">Collection Register</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Daily/monthly collection summary</div></div>
+      <div class="report-icon" style="background:var(--accent-dim);">📋</div>
+    </div>
+    <div class="report-card" onclick="genReport('member_outstanding')">
+      <div><div style="font-weight:700;font-size:13px">Member Outstanding</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">All pending dues by member</div></div>
+      <div class="report-icon" style="background:var(--red-dim);">⏰</div>
+    </div>
+    <div class="report-card" onclick="genReport('member_ledger')">
+      <div><div style="font-weight:700;font-size:13px">Member Ledger</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Full payment history per member</div></div>
+      <div class="report-icon" style="background:var(--gold-dim);">📒</div>
+    </div>
+    <div class="report-card" onclick="genReport('auction_minutes')">
+      <div><div style="font-weight:700;font-size:13px">Auction Minutes</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Formal auction records</div></div>
+      <div class="report-icon" style="background:var(--gold-dim);">🔨</div>
+    </div>
+    <div class="report-card" onclick="genReport('dividend_dist')">
+      <div><div style="font-weight:700;font-size:13px">Dividend Distribution</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Month-wise dividend credits</div></div>
+      <div class="report-icon" style="background:var(--accent-dim);">💰</div>
+    </div>
+    <div class="report-card" onclick="genReport('foreman_commission')">
+      <div><div style="font-weight:700;font-size:13px">Commission Report</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Foreman earnings per group</div></div>
+      <div class="report-icon" style="background:var(--purple-dim);">🏆</div>
+    </div>
+    <div class="report-card" onclick="genReport('gst_report')">
+      <div><div style="font-weight:700;font-size:13px">GST Report</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Tax invoices & filing data</div></div>
+      <div class="report-icon" style="background:var(--purple-dim);">🧾</div>
+    </div>
+    <div class="report-card" onclick="genReport('branch_performance')">
+      <div><div style="font-weight:700;font-size:13px">Branch Performance</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Multi-branch comparison</div></div>
+      <div class="report-icon" style="background:var(--blue-dim);">🏢</div>
+    </div>
+    <div class="report-card" onclick="genReport('profit_summary')">
+      <div><div style="font-weight:700;font-size:13px">Profit Summary</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Revenue, commission & expenses</div></div>
+      <div class="report-icon" style="background:var(--accent-dim);">📈</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-hd"><div class="panel-title" id="report-title">Select a report above to preview</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" id="report-print-btn" onclick="printReport()" style="display:none">🖨️ Print</button><button class="btn btn-primary btn-sm" id="report-dl-btn" onclick="downloadReport()" style="display:none">⬇️ Download CSV</button></div>
+    </div>
+    <div class="panel-body" id="report-content">
+      <div style="text-align:center;padding:40px;color:var(--txt3);font-size:13px">📊 Select a report type from above to generate</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AGENTS ═══════════════ -->
+<div class="section anim" id="sec-agents">
+  <div class="topbar">
+    <div><div class="page-title">Agent & Staff <span>Management</span></div><div class="page-sub">Field collectors and staff tracking</div></div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openModal('addAgent')">+ Add Agent</button></div>
+  </div>
+  <div class="panel">
+    <div class="panel-body-0">
+      <table class="tbl"><thead><tr><th style="padding-left:16px">Name</th><th>Role</th><th>Branch</th><th>Members Assigned</th><th>Collections Today</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody id="agents-table"><tr><td colspan="7" class="tbl-empty"><div class="loading"><div class="spin"></div>Loading agents...</div></td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SETTINGS ═══════════════ -->
+<div class="section anim" id="sec-settings">
+  <div class="topbar"><div><div class="page-title">System <span>Settings</span></div></div></div>
+  <div class="grid-2">
+    <div class="panel mb">
+      <div class="panel-hd"><div class="panel-title">🔗 Supabase Connection</div></div>
+      <div class="panel-body">
+        <div class="fg" style="margin-bottom:10px"><div class="fl">Project URL</div><input class="fi" id="set-url" placeholder="https://xxx.supabase.co"/></div>
+        <div class="fg" style="margin-bottom:14px"><div class="fl">Anon Key</div><input class="fi" type="password" id="set-key" placeholder="eyJ..."/></div>
+        <button class="btn btn-primary" onclick="reconnect()">Reconnect</button>
+      </div>
+    </div>
+    <div class="panel mb">
+      <div class="panel-hd"><div class="panel-title">💬 WhatsApp / Twilio</div></div>
+      <div class="panel-body">
+        <div class="fg" style="margin-bottom:10px"><div class="fl">Twilio SID</div><input class="fi" placeholder="ACxxxxxxxx"/></div>
+        <div class="fg" style="margin-bottom:10px"><div class="fl">Auth Token</div><input class="fi" type="password" placeholder="auth token"/></div>
+        <div class="fg" style="margin-bottom:14px"><div class="fl">WhatsApp Number</div><input class="fi" placeholder="+14155238886"/></div>
+        <button class="btn btn-ghost">Save WhatsApp Config</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">⚙️ Business Rules</div></div>
+      <div class="panel-body">
+        <div class="fg" style="margin-bottom:10px"><div class="fl">Foreman Commission %</div><input class="fi" type="number" placeholder="5" value="5"/></div>
+        <div class="fg" style="margin-bottom:10px"><div class="fl">Late Penalty % per month</div><input class="fi" type="number" placeholder="5" value="5"/></div>
+        <div class="fg" style="margin-bottom:14px"><div class="fl">Grace Period (days)</div><input class="fi" type="number" placeholder="7" value="7"/></div>
+        <button class="btn btn-primary">Save Rules</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><div class="panel-title">🏢 GST Settings</div></div>
+      <div class="panel-body">
+        <div class="fg" style="margin-bottom:10px"><div class="fl">GSTIN</div><input class="fi" placeholder="29AAAAA0000A1Z5" id="cfg-gstin"/></div>
+        <div class="fg" style="margin-bottom:10px"><div class="fl">CGST Rate %</div><input class="fi" type="number" placeholder="9" value="9"/></div>
+        <div class="fg" style="margin-bottom:14px"><div class="fl">SGST Rate %</div><input class="fi" type="number" placeholder="9" value="9"/></div>
+        <button class="btn btn-purple">Save GST Config</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- Add Member -->
+<div class="modal-ov" id="m-addMember">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addMember')">×</button>
+    <div class="modal-title">👤 New Member Registration</div>
+    <div class="modal-sub">KYC verification required for all new members</div>
+    <div class="form-grid">
+      <div class="fg"><div class="fl">Full Name *</div><input class="fi" id="m-name" placeholder="Kumar Selvam"/></div>
+      <div class="fg"><div class="fl">Phone *</div><input class="fi" id="m-phone" placeholder="9841234567" maxlength="10"/></div>
+      <div class="fg"><div class="fl">Alternate Phone</div><input class="fi" id="m-phone2" placeholder="Optional"/></div>
+      <div class="fg"><div class="fl">Email</div><input class="fi" id="m-email" type="email" placeholder="email@example.com"/></div>
+      <div class="fg"><div class="fl">Aadhaar Number</div><input class="fi" id="m-aadhaar" placeholder="1234 5678 9012" maxlength="14"/></div>
+      <div class="fg"><div class="fl">PAN Number</div><input class="fi" id="m-pan" placeholder="ABCDE1234F" style="text-transform:uppercase" maxlength="10"/></div>
+      <div class="fg fg-full"><div class="fl">Address</div><textarea class="ft" id="m-address" placeholder="Full address with city, pincode" rows="2"></textarea></div>
+      <div class="fg"><div class="fl">Assign Agent</div>
+        <select class="fs" id="m-agent"><option value="">Select Agent</option></select>
+      </div>
+      <div class="fg"><div class="fl">Nominee Name</div><input class="fi" id="m-nominee" placeholder="Nominee name"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addMember')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()">✅ Register Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Chit Group -->
+<div class="modal-ov" id="m-addChit">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addChit')">×</button>
+    <div class="modal-title">📋 Create Chit Group</div>
+    <div class="modal-sub">System will auto-generate installment schedule on activation</div>
+    <div class="form-grid">
+      <div class="fg"><div class="fl">Group Name *</div><input class="fi" id="cg-name" placeholder="e.g. Group E"/></div>
+      <div class="fg"><div class="fl">Chit Amount (₹) *</div><input class="fi" id="cg-value" type="number" placeholder="100000" oninput="updateChitCalc()"/></div>
+      <div class="fg"><div class="fl">No. of Members *</div><input class="fi" id="cg-members" type="number" placeholder="20" oninput="updateChitCalc()"/></div>
+      <div class="fg"><div class="fl">Duration (months)</div><input class="fi" id="cg-duration" type="number" placeholder="20" oninput="updateChitCalc()"/></div>
+      <div class="fg"><div class="fl">Start Date *</div><input class="fi" id="cg-start" type="date"/></div>
+      <div class="fg"><div class="fl">Foreman Commission %</div><input class="fi" id="cg-comm" type="number" placeholder="5" value="5" oninput="updateChitCalc()"/></div>
+      <div class="fg"><div class="fl">Due Day (of month)</div><input class="fi" id="cg-due-day" type="number" placeholder="1" value="1" min="1" max="28"/></div>
+      <div class="fg"><div class="fl">GST Applicable</div>
+        <select class="fs" id="cg-gst"><option value="false">No</option><option value="true">Yes (18%)</option></select>
+      </div>
+      <div class="fg fg-full">
+        <div class="fl">Monthly Installment (Auto-calculated)</div>
+        <input class="fi fi-calc" id="cg-installment" readonly placeholder="Will calculate automatically"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addChit')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveChitGroup()">✅ Create Group</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Payment / Collection -->
+<div class="modal-ov" id="m-addCollection">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addCollection')">×</button>
+    <div class="modal-title">💳 Record Payment</div>
+    <div class="modal-sub">Auto-generates receipt & queues WhatsApp notification</div>
+    <div class="form-grid">
+      <div class="fg fg-full"><div class="fl">Member *</div>
+        <select class="fs" id="cp-member" onchange="loadMemberPayments()"><option value="">Select member...</option></select>
+      </div>
+      <div class="fg fg-full"><div class="fl">Chit Group *</div>
+        <select class="fs" id="cp-group" onchange="loadGroupMonths()"><option value="">Select group...</option></select>
+      </div>
+      <div class="fg"><div class="fl">Month *</div>
+        <select class="fs" id="cp-month"><option value="">Select month...</option></select>
+      </div>
+      <div class="fg"><div class="fl">Payment Mode *</div>
+        <select class="fs" id="cp-mode">
+          <option value="cash">💵 Cash</option>
+          <option value="upi">📱 UPI</option>
+          <option value="bank_transfer">🏦 Bank Transfer</option>
+          <option value="cheque">📄 Cheque</option>
+        </select>
+      </div>
+      <div class="fg"><div class="fl">Amount (₹) *</div><input class="fi" id="cp-amount" type="number" placeholder="5000"/></div>
+      <div class="fg"><div class="fl">UPI / Bank Ref</div><input class="fi" id="cp-ref" placeholder="Transaction reference"/></div>
+      <div class="fg fg-full">
+        <div class="fl">Penalty (Auto-calculated)</div>
+        <input class="fi fi-calc" id="cp-penalty" readonly placeholder="₹0 (no penalty)"/>
+      </div>
+      <div class="fg fg-full"><div class="fl">Notes</div><input class="fi" id="cp-notes" placeholder="Optional notes"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addCollection')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayment()">✅ Record & Generate Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Auction -->
+<div class="modal-ov" id="m-scheduleAuction">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('scheduleAuction')">×</button>
+    <div class="modal-title">🔨 Schedule Auction</div>
+    <div class="modal-sub">Set up monthly auction for a chit group</div>
+    <div class="form-grid">
+      <div class="fg fg-full"><div class="fl">Chit Group *</div>
+        <select class="fs" id="sa-group" onchange="loadGroupForAuction()"><option value="">Select group...</option></select>
+      </div>
+      <div class="fg"><div class="fl">Month Number *</div><input class="fi" id="sa-month" type="number" placeholder="e.g. 5"/></div>
+      <div class="fg"><div class="fl">Auction Date *</div><input class="fi" id="sa-date" type="date"/></div>
+      <div class="fg fg-full">
+        <div class="fl">Chit Value (Auto)</div>
+        <input class="fi fi-calc" id="sa-value" readonly placeholder="Select group first"/>
+      </div>
+      <div class="fg fg-full"><div class="fl">Notes / Venue</div><input class="fi" id="sa-notes" placeholder="e.g. Office premises, 3 PM"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('scheduleAuction')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveAuction()">✅ Schedule Auction</button>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Bid -->
+<div class="modal-ov" id="m-submitBid">
+  <div class="modal" style="width:420px">
+    <button class="modal-close" onclick="closeModal('submitBid')">×</button>
+    <div class="modal-title">💰 Submit Bid</div>
+    <div class="modal-sub" id="bid-modal-sub">Enter the amount you're willing to accept</div>
+    <div class="auc-card" id="bid-preview-card" style="margin-bottom:16px">
+      <div class="bid-grid">
+        <div class="bid-item"><div class="bid-lbl">Chit Value</div><div class="bid-val" style="color:var(--gold)" id="bm-chit">—</div></div>
+        <div class="bid-item"><div class="bid-lbl">Min Bid</div><div class="bid-val" style="color:var(--accent)" id="bm-min">—</div></div>
+        <div class="bid-item"><div class="bid-lbl">Your Dividend</div><div class="bid-val" style="color:var(--purple)" id="bm-div">~₹?</div></div>
+      </div>
+    </div>
+    <div class="fg fg-full" style="margin-bottom:10px"><div class="fl">Bidder (Member) *</div>
+      <select class="fs" id="bid-member"><option value="">Select member...</option></select>
+    </div>
+    <div class="fg fg-full" style="margin-bottom:14px"><div class="fl">Bid Amount (₹) — lower = better chance *</div>
+      <input class="fi" id="bid-amount" type="number" placeholder="e.g. 85000" oninput="previewBid()"/>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><div style="color:var(--txt3)">Your discount</div><div class="amt amt-r" id="bid-discount">—</div></div>
+        <div><div style="color:var(--txt3)">Dividend others get</div><div class="amt amt-c" id="bid-other-div">—</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('submitBid')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveBid()">🔨 Submit Bid</button>
+    </div>
+  </div>
+</div>
+
+<!-- Finalize Auction -->
+<div class="modal-ov" id="m-finalizeAuction">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('finalizeAuction')">×</button>
+    <div class="modal-title">✅ Finalize Auction</div>
+    <div class="modal-sub" id="fin-sub">Review results before closing</div>
+    <div id="fin-results" style="margin-bottom:16px"></div>
+    <div class="fg fg-full" style="margin-bottom:14px"><div class="fl">Winning Bid Amount (₹) — confirm or override</div>
+      <input class="fi" id="fin-bid" type="number" oninput="previewFinalize()"/>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:11px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="color:var(--txt3)">Discount</div><div class="amt amt-c" id="fin-discount">—</div></div>
+        <div><div style="color:var(--txt3)">Foreman Commission</div><div class="amt amt-r" id="fin-comm">—</div></div>
+        <div><div style="color:var(--txt3)">Pool to Distribute</div><div class="amt" id="fin-pool">—</div></div>
+        <div><div style="color:var(--txt3)">Dividend / Member</div><div class="amt amt-g" id="fin-div">—</div></div>
+        <div style="grid-column:1/-1"><div style="color:var(--txt3)">Winner Gets (Net)</div><div class="amt amt-c" style="font-size:18px" id="fin-winner">—</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('finalizeAuction')">Cancel</button>
+      <button class="btn btn-gold" onclick="confirmFinalize()">🏆 Confirm & Distribute Dividends</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Branch -->
+<div class="modal-ov" id="m-addBranch">
+  <div class="modal" style="width:420px">
+    <button class="modal-close" onclick="closeModal('addBranch')">×</button>
+    <div class="modal-title">🏢 Add Branch</div>
+    <div class="modal-sub">Create a new branch with isolated data</div>
+    <div class="form-grid">
+      <div class="fg"><div class="fl">Branch Name *</div><input class="fi" id="br-name" placeholder="e.g. Coimbatore Branch"/></div>
+      <div class="fg"><div class="fl">Branch Code *</div><input class="fi" id="br-code" placeholder="CBE-01" style="text-transform:uppercase"/></div>
+      <div class="fg"><div class="fl">City</div><input class="fi" id="br-city" placeholder="Coimbatore"/></div>
+      <div class="fg"><div class="fl">Phone</div><input class="fi" id="br-phone" placeholder="9841000001"/></div>
+      <div class="fg fg-full"><div class="fl">Address</div><input class="fi" id="br-address" placeholder="Branch address"/></div>
+      <div class="fg fg-full"><div class="fl">GSTIN</div><input class="fi" id="br-gstin" placeholder="29AAAAA0000A1Z5"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addBranch')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBranch()">✅ Create Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Agent -->
+<div class="modal-ov" id="m-addAgent">
+  <div class="modal" style="width:420px">
+    <button class="modal-close" onclick="closeModal('addAgent')">×</button>
+    <div class="modal-title">🧑‍💼 Add Agent / Staff</div>
+    <div class="form-grid">
+      <div class="fg"><div class="fl">Full Name *</div><input class="fi" id="ag-name" placeholder="Agent name"/></div>
+      <div class="fg"><div class="fl">Phone *</div><input class="fi" id="ag-phone" placeholder="9841234567"/></div>
+      <div class="fg"><div class="fl">Email *</div><input class="fi" id="ag-email" type="email" placeholder="agent@chitflow.com"/></div>
+      <div class="fg"><div class="fl">Role</div>
+        <select class="fs" id="ag-role"><option value="agent">Agent/Collector</option><option value="staff">Staff</option><option value="branch_admin">Branch Admin</option></select>
+      </div>
+      <div class="fg fg-full"><div class="fl">Password</div><input class="fi" id="ag-pass" type="password" placeholder="Temporary password"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addAgent')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAgent()">✅ Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- GST Invoice -->
+<div class="modal-ov" id="m-addGSTInvoice">
+  <div class="modal" style="width:420px">
+    <button class="modal-close" onclick="closeModal('addGSTInvoice')">×</button>
+    <div class="modal-title">🧾 Generate GST Invoice</div>
+    <div class="form-grid">
+      <div class="fg fg-full"><div class="fl">Member *</div>
+        <select class="fs" id="gi-member"><option value="">Select member...</option></select>
+      </div>
+      <div class="fg"><div class="fl">Taxable Value (₹) *</div><input class="fi" id="gi-taxable" type="number" placeholder="5000" oninput="calcGSTModal()"/></div>
+      <div class="fg"><div class="fl">Invoice Date</div><input class="fi" id="gi-date" type="date"/></div>
+      <div class="fg fg-full" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px">
+          <div><div style="color:var(--txt3)">CGST 9%</div><div class="amt" id="gi-cgst">₹0</div></div>
+          <div><div style="color:var(--txt3)">SGST 9%</div><div class="amt" id="gi-sgst">₹0</div></div>
+          <div><div style="color:var(--txt3)">Total</div><div class="amt amt-p" id="gi-total">₹0</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addGSTInvoice')">Cancel</button>
+      <button class="btn btn-purple" onclick="saveGSTInvoice()">🧾 Generate & Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// SUPABASE CLIENT — DataCloneError-safe
+// Uses raw fetch() instead of supabase-js headers objects
+// so no Headers cloning issue across contexts
+// ══════════════════════════════════════════════════════════
+let sb = null;         // supabase-js client (ESM, set after ready)
+let sbUrl = '';        // project URL
+let sbKey = '';        // anon key
+let DEMO_MODE = false;
+let activeBranchId = null;
+let currentAuctionId = null;
+let currentUser = { name: 'Admin', role: 'super_admin', avatar: 'A' };
+let allMembers = [], allChits = [], allPayments = [], allAuctions = [], allBranches = [];
+
+// ── Safe Supabase query wrapper ──────────────────────────
+// Uses plain fetch → returns parsed JSON array (never a Response object).
+function sbHeaders(extra = {}) {
+  return {
+    'apikey':        sbKey,
+    'Authorization': 'Bearer ' + sbKey,
+    'Content-Type':  'application/json',
+    'Accept':        'application/json',
+    'Prefer':        'return=representation',
+    ...extra,
+  };
+}
+
+async function sbFetch(table, params = '') {
+  if (DEMO_MODE) return [];
+  try {
+    const url = `${sbUrl}/rest/v1/${table}${params ? '?' + params : ''}`;
+    const res = await fetch(url, { headers: sbHeaders() });
+    if (!res.ok) {
+      const err = await res.text();
+      console.warn('sbFetch', res.status, table, err);
+      return [];
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data ? [data] : []);
+  } catch(e) { console.error('sbFetch', table, e.message); return []; }
+}
+
+async function sbInsert(table, row) {
+  if (DEMO_MODE) return { data: row, error: null };
+  try {
+    const url = `${sbUrl}/rest/v1/${table}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: sbHeaders(),
+      body: JSON.stringify(row),
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch(_) { data = text; }
+    return { data, error: res.ok ? null : { message: typeof data === 'object' ? (data?.message || JSON.stringify(data)) : text } };
+  } catch(e) { return { data: null, error: { message: e.message } }; }
+}
+
+async function sbUpdate(table, match, updates) {
+  if (DEMO_MODE) return { error: null };
+  try {
+    const matchStr = Object.entries(match).map(([k,v]) => `${k}=eq.${encodeURIComponent(v)}`).join('&');
+    const url = `${sbUrl}/rest/v1/${table}?${matchStr}`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: sbHeaders(),
+      body: JSON.stringify(updates),
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch(_) {}
+    return { error: res.ok ? null : { message: typeof data === 'object' ? (data?.message || JSON.stringify(data)) : text } };
+  } catch(e) { return { error: { message: e.message } }; }
+}
+
+// ── Init ─────────────────────────────────────────────────
+function initSupabase() {
+  const url = document.getElementById('sbUrl').value.trim();
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) { toast('Enter Supabase URL and Anon Key', 'e'); return; }
+  sbUrl = url.replace(/\/$/, '');
+  sbKey = key;
+  // Also create supabase-js client IF ESM loaded (for auth only)
+  if (window.__supabaseCreateClient) {
+    try { sb = window.__supabaseCreateClient(sbUrl, sbKey); } catch(e) {}
+  }
+  localStorage.setItem('cf_url', sbUrl);
+  localStorage.setItem('cf_key', sbKey);
+  toast('Connecting...', 'i');
+  launchApp();
+}
+
+function loadDemo() {
+  DEMO_MODE = true;
+  seedDemoData();
+  launchApp();
+}
+
+function reconnect() {
+  const url = document.getElementById('set-url').value.trim();
+  const key = document.getElementById('set-key').value.trim();
+  if (!url || !key) return;
+  sbUrl = url.replace(/\/$/, '');
+  sbKey = key;
+  if (window.__supabaseCreateClient) {
+    try { sb = window.__supabaseCreateClient(sbUrl, sbKey); } catch(e) {}
+  }
+  toast('Reconnected!', 's');
+}
+
+async function launchApp() {
+  document.getElementById('configScreen').style.display = 'none';
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  await loadAllData();
+}
+
+// ══════════════════════════════════════════════════════════
+// DEMO DATA
+// ══════════════════════════════════════════════════════════
+function seedDemoData() {
+  allBranches = [
+    {id:'br1', name:'Chennai HQ', code:'CHN-01', city:'Chennai', is_active:true},
+    {id:'br2', name:'Coimbatore Branch', code:'CBE-01', city:'Coimbatore', is_active:true},
+  ];
+  activeBranchId = 'br1';
+  document.getElementById('activeBranchName').textContent = 'Chennai HQ';
+
+  allMembers = [
+    {id:'m1',member_code:'M-0001',full_name:'Kumar Selvam',phone:'9841234567',kyc_status:'verified',status:'active',branch_id:'br1'},
+    {id:'m2',member_code:'M-0002',full_name:'Priya Meena',phone:'9876543210',kyc_status:'verified',status:'active',branch_id:'br1'},
+    {id:'m3',member_code:'M-0003',full_name:'Rajesh Kumar',phone:'9001234567',kyc_status:'verified',status:'active',branch_id:'br1'},
+    {id:'m4',member_code:'M-0004',full_name:'Suresh Thangaraj',phone:'9901234567',kyc_status:'pending',status:'active',branch_id:'br1'},
+    {id:'m5',member_code:'M-0005',full_name:'Vani Lakshmi',phone:'9841111111',kyc_status:'verified',status:'active',branch_id:'br1'},
+    {id:'m6',member_code:'M-0006',full_name:'Divya Krishnan',phone:'9841222222',kyc_status:'pending',status:'active',branch_id:'br1'},
+    {id:'m7',member_code:'M-0007',full_name:'Rajan Subramani',phone:'9841333333',kyc_status:'verified',status:'active',branch_id:'br2'},
+  ];
+
+  allChits = [
+    {id:'cg1',group_code:'CHN-GRP-A',name:'Group A',chit_value:100000,num_members:20,monthly_installment:5000,duration_months:20,current_month:13,status:'active',start_date:'2024-04-01',foreman_commission_pct:5,branch_id:'br1'},
+    {id:'cg2',group_code:'CHN-GRP-C',name:'Group C',chit_value:300000,num_members:30,monthly_installment:10000,duration_months:30,current_month:4,status:'active',start_date:'2024-01-01',foreman_commission_pct:5,branch_id:'br1'},
+    {id:'cg3',group_code:'CHN-GRP-D',name:'Group D',chit_value:500000,num_members:25,monthly_installment:20000,duration_months:25,current_month:2,status:'active',start_date:'2024-03-01',foreman_commission_pct:5,branch_id:'br1'},
+    {id:'cg4',group_code:'CBE-GRP-A',name:'CBE Group A',chit_value:200000,num_members:20,monthly_installment:10000,duration_months:20,current_month:8,status:'active',start_date:'2024-08-01',foreman_commission_pct:5,branch_id:'br2'},
+  ];
+
+  const today = new Date().toISOString().split('T')[0];
+  const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  allPayments = [
+    {id:'p1',member_id:'m1',chit_group_id:'cg1',month_number:13,installment_amt:5000,penalty_amt:0,total_paid:5000,payment_mode:'upi',paid_date:today,status:'paid',branch_id:'br1',member:{full_name:'Kumar Selvam',member_code:'M-0001'},chit_group:{name:'Group A'}},
+    {id:'p2',member_id:'m2',chit_group_id:'cg2',month_number:4,installment_amt:10000,penalty_amt:0,total_paid:10000,payment_mode:'bank_transfer',paid_date:today,status:'paid',branch_id:'br1',member:{full_name:'Priya Meena',member_code:'M-0002'},chit_group:{name:'Group C'}},
+    {id:'p3',member_id:'m3',chit_group_id:'cg1',month_number:13,installment_amt:5000,penalty_amt:0,total_paid:5000,payment_mode:'cash',paid_date:today,status:'paid',branch_id:'br1',member:{full_name:'Rajesh Kumar',member_code:'M-0003'},chit_group:{name:'Group A'}},
+    {id:'p4',member_id:'m4',chit_group_id:'cg1',month_number:13,installment_amt:5000,penalty_amt:250,total_paid:0,payment_mode:null,paid_date:null,due_date:'2025-04-01',status:'overdue',branch_id:'br1',member:{full_name:'Suresh Thangaraj',member_code:'M-0004'},chit_group:{name:'Group A'}},
+    {id:'p5',member_id:'m5',chit_group_id:'cg3',month_number:2,installment_amt:20000,penalty_amt:0,total_paid:20000,payment_mode:'upi',paid_date:today,status:'paid',branch_id:'br1',member:{full_name:'Vani Lakshmi',member_code:'M-0005'},chit_group:{name:'Group D'}},
+    {id:'p6',member_id:'m6',chit_group_id:'cg2',month_number:4,installment_amt:10000,penalty_amt:500,total_paid:0,payment_mode:null,paid_date:null,due_date:'2025-03-01',status:'overdue',branch_id:'br1',member:{full_name:'Divya Krishnan',member_code:'M-0006'},chit_group:{name:'Group C'}},
+  ];
+
+  allAuctions = [
+    {id:'a1',chit_group_id:'cg1',month_number:13,scheduled_date:'2025-05-01',chit_value:100000,status:'scheduled',chit_group:{name:'Group A'},winner_member_id:null},
+    {id:'a2',chit_group_id:'cg2',month_number:4,scheduled_date:'2025-04-15',chit_value:300000,status:'open',chit_group:{name:'Group C'},winner_member_id:null},
+    {id:'a3',chit_group_id:'cg1',month_number:12,scheduled_date:'2025-04-01',chit_value:100000,status:'completed',winning_bid_amt:88000,winner_member_id:'m3',foreman_commission:5000,dividend_per_member:350,net_prize_amt:88000,chit_group:{name:'Group A'},winner:{full_name:'Rajesh Kumar'}},
+    {id:'a4',chit_group_id:'cg2',month_number:3,scheduled_date:'2025-03-15',chit_value:300000,status:'completed',winning_bid_amt:270000,winner_member_id:'m1',foreman_commission:15000,dividend_per_member:500,net_prize_amt:270000,chit_group:{name:'Group C'},winner:{full_name:'Kumar Selvam'}},
+  ];
+}
+
+// ══════════════════════════════════════════════════════════
+// DATA LOADING — uses plain fetch (DataCloneError-safe)
+// ══════════════════════════════════════════════════════════
+async function loadAllData() {
+  if (DEMO_MODE) {
+    renderDashboard();
+    updateNavBadges();
+    populateDropdowns();
+    return;
+  }
+  try {
+    // Load all tables with simple flat queries (no FK joins to avoid PostgREST errors)
+    const [branches, members, chits, payments, auctions, bids] = await Promise.all([
+      sbFetch('branches',  'is_active=eq.true&order=created_at.asc'),
+      sbFetch('members',   'order=created_at.desc&limit=500'),
+      sbFetch('chit_groups', 'order=created_at.desc'),
+      sbFetch('payments',  'order=created_at.desc&limit=300'),
+      sbFetch('auctions',  'order=scheduled_date.desc'),
+      sbFetch('auction_bids', 'order=bid_time.asc'),
+    ]);
+
+    allBranches = branches;
+    allMembers  = members;
+    allChits    = chits;
+
+    // Manually join member + chit_group names into payments (avoids FK join issues)
+    const memberMap = Object.fromEntries(members.map(m => [m.id, m]));
+    const chitMap   = Object.fromEntries(chits.map(c => [c.id, c]));
+
+    allPayments = payments.map(p => ({
+      ...p,
+      member:     memberMap[p.member_id]    || { full_name: '—', member_code: '—', phone: '—' },
+      chit_group: chitMap[p.chit_group_id]  || { name: '—' },
+    }));
+
+    // Join bids into auctions
+    const bidsByAuction = {};
+    bids.forEach(b => {
+      if (!bidsByAuction[b.auction_id]) bidsByAuction[b.auction_id] = [];
+      bidsByAuction[b.auction_id].push({ ...b, member: memberMap[b.member_id] || { full_name: '—' } });
+    });
+
+    allAuctions = auctions.map(a => ({
+      ...a,
+      chit_group: chitMap[a.chit_group_id]         || { name: '—' },
+      winner:     memberMap[a.winner_member_id]     || null,
+      bids:       bidsByAuction[a.id]               || [],
+    }));
+
+    // Set active branch
+    if (!activeBranchId && allBranches.length) {
+      activeBranchId = allBranches[0].id;
+      document.getElementById('activeBranchName').textContent = allBranches[0].name;
+    }
+
+    renderDashboard();
+    updateNavBadges();
+    populateDropdowns();
+    toast('Connected to Supabase ✓', 's');
+  } catch(e) {
+    toast('Load error: ' + e.message, 'e');
+    console.error(e);
+  }
+}
+
+function updateNavBadges() {
+  document.getElementById('nb-members').textContent = allMembers.length;
+  document.getElementById('nb-chits').textContent = allChits.filter(c=>c.status==='active').length;
+  const pending = allPayments.filter(p=>p.status==='overdue'||p.status==='pending');
+  document.getElementById('nb-pending').textContent = pending.length;
+  const upAuc = allAuctions.filter(a=>a.status==='scheduled'||a.status==='open');
+  document.getElementById('nb-auctions').textContent = upAuc.length;
+}
+
+function populateDropdowns() {
+  // Member dropdowns
+  ['cp-member','bid-member','gi-member'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">Select member...</option>' + allMembers.map(m=>`<option value="${m.id}">${m.full_name} (${m.member_code})</option>`).join('');
+  });
+  // Agent dropdown
+  const agEl = document.getElementById('m-agent');
+  if (agEl) agEl.innerHTML = '<option value="">Select Agent</option>' + allMembers.slice(0,3).map(m=>`<option value="${m.id}">${m.full_name}</option>`).join('');
+  // Chit group dropdowns
+  ['cp-group','sa-group'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">Select group...</option>' + allChits.map(c=>`<option value="${c.id}">${c.name} (₹${(c.chit_value||0).toLocaleString('en-IN')})</option>`).join('');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// DASHBOARD RENDER
+// ══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayPmts = allPayments.filter(p=>p.paid_date===today && p.status==='paid');
+  const todayTotal = todayPmts.reduce((s,p)=>s+(+p.total_paid||0),0);
+  const overdue = allPayments.filter(p=>p.status==='overdue');
+  const overdueAmt = overdue.reduce((s,p)=>s+(+p.installment_amt||0)+(+p.penalty_amt||0),0);
+  const activeChits = allChits.filter(c=>c.status==='active');
+
+  document.getElementById('s-today').textContent = '₹'+fmt(todayTotal);
+  document.getElementById('s-today-sub').textContent = todayPmts.length+' payments today';
+  document.getElementById('s-members').textContent = allMembers.length;
+  document.getElementById('s-members-sub').textContent = allMembers.filter(m=>m.kyc_status==='verified').length+' KYC verified';
+  document.getElementById('s-chits').textContent = activeChits.length;
+  document.getElementById('s-chits-sub').textContent = allChits.filter(c=>c.status==='completed').length+' completed';
+  document.getElementById('s-dues').textContent = '₹'+fmt(overdueAmt);
+  document.getElementById('s-dues-sub').textContent = overdue.length+' members overdue';
+  document.getElementById('greetName').textContent = currentUser.name;
+
+  if (overdue.length > 0) {
+    document.getElementById('overdueAlert').style.display = 'flex';
+    document.getElementById('overdueMsg').innerHTML = `<strong>${overdue.length} overdue payments</strong> — ₹${fmt(overdueAmt)} pending. Reminders recommended.`;
+  }
+
+  // Recent collections table
+  const tb = document.getElementById('dash-collections');
+  if (!todayPmts.length && !overdue.length) { tb.innerHTML = '<tr><td colspan="5" class="tbl-empty">No collections today yet</td></tr>'; }
+  else {
+    const rows = [...todayPmts, ...overdue].slice(0,8).map(p => {
+      const av = avatarColor(p.member?.full_name||'');
+      const paid = p.status==='paid';
+      return `<tr>
+        <td style="padding-left:16px"><div class="mc"><div class="av ${av.cls}">${av.initials}</div><div><div class="mn">${p.member?.full_name||'—'}</div><div class="mid">${p.member?.member_code||''}</div></div></div></td>
+        <td><span style="font-size:10px">${p.chit_group?.name||'—'}</span></td>
+        <td>${modeIcon(p.payment_mode)}</td>
+        <td><span class="amt ${paid?'amt-c':'amt-r'}">${paid?'+':''}₹${fmt(p.total_paid||p.installment_amt)}</span></td>
+        <td><span class="badge ${paid?'badge-active':'badge-overdue'}"><span class="dot"></span>${paid?'Paid':'Overdue'}</span></td>
+      </tr>`;
+    }).join('');
+    tb.innerHTML = rows;
+  }
+
+  // Chit group cards
+  const cg = document.getElementById('dash-chits');
+  cg.innerHTML = activeChits.slice(0,3).map(c=>{
+    const pct = Math.round((c.current_month/c.duration_months)*100);
+    const cls = ['prog-c','prog-g','prog-p'][allChits.indexOf(c)%3];
+    return `<div class="cg-card mb">
+      <div class="cg-hd"><div><div class="cg-nm">${c.name} — ₹${fmt(c.monthly_installment)}/mo</div><div class="cg-meta">Month ${c.current_month}/${c.duration_months} · Started ${c.start_date}</div></div><span class="badge badge-active"><span class="dot"></span>Active</span></div>
+      <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pct}%"></div></div>
+      <div class="cg-stats">
+        <div class="cg-stat"><div class="cg-stat-v">${c.num_members}</div>Members</div>
+        <div class="cg-stat"><div class="cg-stat-v">₹${fmt(c.chit_value)}</div>Value</div>
+        <div class="cg-stat"><div class="cg-stat-v">₹${fmt(Math.floor((c.chit_value*0.1-c.chit_value*c.foreman_commission_pct/100)/c.num_members))}</div>Dividend~</div>
+        <div class="cg-stat"><div class="cg-stat-v">${c.duration_months-c.current_month}</div>Left</div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">No active chit groups yet</div>';
+
+  // Upcoming auctions
+  const upAuc = allAuctions.filter(a=>a.status==='scheduled'||a.status==='open').slice(0,2);
+  document.getElementById('dash-auctions').innerHTML = upAuc.length ? upAuc.map(a=>`
+    <div class="auc-card">
+      <div class="auc-hd"><div><div style="font-weight:800;font-size:13px">${a.chit_group?.name} — Month ${a.month_number}</div><div style="font-size:10px;color:var(--txt3);margin-top:2px">${a.scheduled_date}</div></div>
+      <span class="badge ${a.status==='open'?'badge-open':'badge-upcoming'}"><span class="dot"></span>${a.status==='open'?'OPEN':'Scheduled'}</span></div>
+      <div class="bid-grid">
+        <div class="bid-item"><div class="bid-lbl">Chit Value</div><div class="bid-val" style="color:var(--gold);font-size:16px">₹${fmt(a.chit_value)}</div></div>
+        <div class="bid-item"><div class="bid-lbl">Min Bid ~</div><div class="bid-val" style="color:var(--accent);font-size:16px">₹${fmt(Math.floor(a.chit_value*0.85))}</div></div>
+        <div class="bid-item"><div class="bid-lbl">Status</div><div class="bid-val" style="font-size:13px">${a.status==='open'?'<button class="btn btn-gold btn-sm" onclick="openBidModal(\''+a.id+'\')">Bid Now</button>':'<button class="btn btn-ghost btn-sm" onclick="openAuction(\''+a.id+'\')">Open</button>'}</div></div>
+      </div>
+    </div>`).join('') : '<div style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">No upcoming auctions</div>';
+
+  // Activity feed
+  const act = document.getElementById('dash-activity');
+  const recent = allPayments.filter(p=>p.status==='paid').slice(0,5);
+  act.innerHTML = recent.map(p=>`<div class="notif-item">
+    <div class="notif-dot" style="background:var(--accent)"></div>
+    <div><div class="notif-txt"><strong>${p.member?.full_name||'Unknown'}</strong> paid ₹${fmt(p.total_paid)} — ${p.chit_group?.name||''}  Month ${p.month_number}</div><div class="notif-time">${p.paid_date||'—'}</div></div>
+  </div>`).join('') || '<div style="color:var(--txt3);font-size:12px;padding:10px">No recent activity</div>';
+}
+
+// ══════════════════════════════════════════════════════════
+// MEMBERS SECTION
+// ══════════════════════════════════════════════════════════
+let memberFilter = 'all', memberSearch = '';
+
+function filterMembers(f, el) {
+  memberFilter = f;
+  document.querySelectorAll('#sec-members .tab').forEach(t=>t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderMembers();
+}
+
+function searchMembers(q) { memberSearch = q; renderMembers(); }
+
+function renderMembers() {
+  let data = allMembers;
+  if (memberFilter === 'pending') data = data.filter(m=>m.kyc_status==='pending');
+  if (memberFilter === 'active') data = data.filter(m=>m.status==='active' && m.kyc_status==='verified');
+  if (memberFilter === 'defaulter') {
+    const defaulterIds = new Set(allPayments.filter(p=>p.status==='overdue').map(p=>p.member_id));
+    data = data.filter(m=>defaulterIds.has(m.id));
+  }
+  if (memberSearch) {
+    const q = memberSearch.toLowerCase();
+    data = data.filter(m=>m.full_name.toLowerCase().includes(q) || (m.phone||'').includes(q) || (m.member_code||'').toLowerCase().includes(q));
+  }
+  document.getElementById('members-sub').textContent = `${data.length} members`;
+  document.getElementById('members-count').textContent = `${data.length} Members`;
+
+  const tb = document.getElementById('members-table');
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="tbl-empty">No members found</td></tr>'; return; }
+  const defaulterIds = new Set(allPayments.filter(p=>p.status==='overdue').map(p=>p.member_id));
+  tb.innerHTML = data.map(m => {
+    const av = avatarColor(m.full_name);
+    const groups = allChits.filter(c=>c.members?.includes(m.id)||true).length;
+    const dues = allPayments.filter(p=>p.member_id===m.id&&p.status==='overdue').reduce((s,p)=>s+(+p.installment_amt||0),0);
+    const isDefault = defaulterIds.has(m.id);
+    return `<tr>
+      <td style="padding-left:16px"><div class="mc"><div class="av ${av.cls}">${av.initials}</div><div><div class="mn">${m.full_name}</div><div class="mid">${m.member_code||'—'}</div></div></div></td>
+      <td><span class="amt" style="font-size:11px">${m.phone||'—'}</span></td>
+      <td><span class="badge badge-pending">Multi-group</span></td>
+      <td><span class="badge ${m.kyc_status==='verified'?'badge-active':'badge-pending'}"><span class="dot"></span>${m.kyc_status==='verified'?'Verified':'Pending'}</span></td>
+      <td><span class="amt ${dues>0?'amt-r':'amt-c'}">${dues>0?'₹'+fmt(dues):'Clear'}</span></td>
+      <td><span class="badge ${isDefault?'badge-overdue':'badge-active'}"><span class="dot"></span>${isDefault?'Defaulter':'Active'}</span></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-xs" onclick="viewLedger('${m.id}')">📒 Ledger</button>
+        ${m.kyc_status!=='verified'?`<button class="btn btn-primary btn-xs" onclick="verifyKYC('${m.id}')">✓ KYC</button>`:''}
+        ${dues>0?`<button class="btn btn-red btn-xs" onclick="sendReminder('${m.id}')">💬</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveMember() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim();
+  if (!name || !phone) { toast('Name and phone required', 'e'); return; }
+
+  const row = {
+    full_name: name, phone,
+    alternate_phone: document.getElementById('m-phone2').value || null,
+    email:           document.getElementById('m-email').value   || null,
+    aadhaar_number:  document.getElementById('m-aadhaar').value  || null,
+    pan_number:      document.getElementById('m-pan').value.toUpperCase() || null,
+    address:         document.getElementById('m-address').value  || null,
+    nominee_name:    document.getElementById('m-nominee').value  || null,
+    kyc_status: 'pending', status: 'active',
+    branch_id: activeBranchId || null,
+  };
+
+  if (DEMO_MODE) {
+    const m = { ...row, id:'m'+Date.now(), member_code:'M-'+String(allMembers.length+1).padStart(4,'0') };
+    allMembers.push(m);
+  } else {
+    const { data, error } = await sbInsert('members', row);
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+    allMembers.unshift(Array.isArray(data) ? data[0] : data);
+  }
+  toast(`✅ ${name} registered!`, 's');
+  closeModal('addMember');
+  clearForm(['m-name','m-phone','m-phone2','m-email','m-aadhaar','m-pan','m-address','m-nominee']);
+  updateNavBadges(); populateDropdowns(); renderMembers();
+}
+
+async function verifyKYC(id) {
+  if (DEMO_MODE) {
+    const m = allMembers.find(m=>m.id===id); if(m) m.kyc_status='verified';
+  } else {
+    const { error } = await sbUpdate('members', {id}, {kyc_status:'verified', kyc_verified_at: new Date().toISOString()});
+    if (error) { toast('Error: '+error.message, 'e'); return; }
+    const m = allMembers.find(m=>m.id===id); if(m) m.kyc_status='verified';
+  }
+  toast('✅ KYC verified!', 's'); renderMembers();
+}
+
+function viewLedger(id) {
+  const m = allMembers.find(m=>m.id===id);
+  const pmts = allPayments.filter(p=>p.member_id===id);
+  const total = pmts.filter(p=>p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0);
+  const pending = pmts.filter(p=>p.status!=='paid').reduce((s,p)=>s+(+p.installment_amt||0),0);
+  toast(`${m?.full_name} — Paid ₹${fmt(total)} | Pending ₹${fmt(pending)}`, 'i');
+}
+
+function sendReminder(id) {
+  const m = allMembers.find(m=>m.id===id);
+  toast(`📱 WhatsApp reminder queued for ${m?.full_name}`, 's');
+  if (!DEMO_MODE) {
+    sbInsert('notifications', {member_id:id, type:'due_reminder', channel:'whatsapp', phone:m?.phone, message:`Payment reminder for ${m?.full_name}`, is_sent:false});
+  }
+}
+
+function exportMembers() {
+  const csv = ['Member Code,Name,Phone,KYC,Status', ...allMembers.map(m=>`${m.member_code},${m.full_name},${m.phone},${m.kyc_status},${m.status}`)].join('\n');
+  downloadCSV(csv, 'members.csv');
+}
+
+// ══════════════════════════════════════════════════════════
+// CHIT GROUPS SECTION
+// ══════════════════════════════════════════════════════════
+let chitFilter = 'all';
+function filterChits(f,el) { chitFilter=f; document.querySelectorAll('#sec-chits .tab').forEach(t=>t.classList.remove('active')); if(el)el.classList.add('active'); renderChits(); }
+
+function renderChits() {
+  let data = allChits;
+  if (chitFilter !== 'all') data = data.filter(c=>c.status===chitFilter);
+  const grid = document.getElementById('chits-grid');
+  document.getElementById('chits-sub').textContent = `${allChits.filter(c=>c.status==='active').length} active · ${allChits.filter(c=>c.status==='completed').length} completed`;
+
+  grid.innerHTML = data.map((c,i) => {
+    const pct = Math.round((c.current_month/c.duration_months)*100);
+    const clss = ['prog-c','prog-g','prog-p'][i%3];
+    const comm = (c.chit_value * c.foreman_commission_pct/100);
+    const collected = allPayments.filter(p=>p.chit_group_id===c.id&&p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0);
+    return `<div class="panel">
+      <div class="panel-hd"><div class="panel-title">${c.name}</div><span class="badge ${c.status==='active'?'badge-active':c.status==='completed'?'badge-completed':'badge-upcoming'}"><span class="dot"></span>${c.status}</span></div>
+      <div class="panel-body">
+        <div style="font-size:30px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--accent)">₹${fmt(c.chit_value)}</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:3px">₹${fmt(c.monthly_installment)}/month × ${c.num_members} members</div>
+        <div class="prog-bar"><div class="prog-fill ${clss}" style="width:${pct}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3)"><span>Month ${c.current_month} of ${c.duration_months}</span><span>${pct}%</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;font-size:11px">
+          <div style="background:var(--surface);padding:8px;border-radius:7px"><div style="color:var(--txt3);font-size:9px">Foreman Commission</div><div class="amt amt-r">₹${fmt(comm)}</div></div>
+          <div style="background:var(--surface);padding:8px;border-radius:7px"><div style="color:var(--txt3);font-size:9px">Collected</div><div class="amt amt-c">₹${fmt(collected)}</div></div>
+          <div style="background:var(--surface);padding:8px;border-radius:7px"><div style="color:var(--txt3);font-size:9px">Members</div><div class="amt">${c.num_members}</div></div>
+          <div style="background:var(--surface);padding:8px;border-radius:7px"><div style="color:var(--txt3);font-size:9px">Remaining</div><div class="amt">${c.duration_months-c.current_month} months</div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="viewSchedule('${c.id}')">📅 Schedule</button>
+          <button class="btn btn-gold btn-sm" style="flex:1" onclick="prepareAuction('${c.id}')">🔨 Auction</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') + `<div class="panel" style="border-style:dashed;cursor:pointer" onclick="openModal('addChit')">
+    <div class="panel-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:10px">
+      <div style="font-size:40px;opacity:.25">+</div><div style="font-size:13px;font-weight:700;color:var(--txt3)">Create New Chit Group</div>
+      <div style="font-size:10px;color:var(--txt3);text-align:center">Set amount, duration, members<br>and auto-generate schedule</div>
+    </div>
+  </div>`;
+}
+
+function updateChitCalc() {
+  const v = +document.getElementById('cg-value').value||0;
+  const m = +document.getElementById('cg-members').value||1;
+  document.getElementById('cg-installment').value = v && m ? `₹${fmt(v/m)} per member per month` : '';
+  const d = document.getElementById('cg-duration');
+  if (!d.value) d.value = m;
+}
+
+async function saveChitGroup() {
+  const name = document.getElementById('cg-name').value.trim();
+  const value = +document.getElementById('cg-value').value;
+  const members = +document.getElementById('cg-members').value;
+  const start = document.getElementById('cg-start').value;
+  if (!name||!value||!members||!start) { toast('Fill all required fields', 'e'); return; }
+  const duration = +document.getElementById('cg-duration').value || members;
+  const comm = +document.getElementById('cg-comm').value || 5;
+  const row = {
+    group_code: (activeBranchId||'CHN').slice(-3)+'-'+name.replace(/\s/g,'').toUpperCase().slice(0,10),
+    name, chit_value: value, num_members: members,
+    duration_months: duration, monthly_installment: value/members,
+    start_date: start, status: 'active', current_month: 1,
+    foreman_commission_pct: comm,
+    is_gst_applicable: document.getElementById('cg-gst').value === 'true',
+    branch_id: activeBranchId || null,
+  };
+  if (DEMO_MODE) {
+    allChits.push({ ...row, id:'cg'+Date.now() });
+  } else {
+    const { data, error } = await sbInsert('chit_groups', row);
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+    allChits.unshift(Array.isArray(data) ? data[0] : data);
+  }
+  toast(`✅ Chit Group "${name}" created!`, 's');
+  closeModal('addChit'); clearForm(['cg-name','cg-value','cg-members','cg-duration','cg-start']);
+  renderChits(); updateNavBadges();
+}
+
+function viewSchedule(id) {
+  const g = allChits.find(c=>c.id===id);
+  toast(`📅 ${g?.name}: ${g?.duration_months} monthly installments of ₹${fmt(g?.monthly_installment)} scheduled`, 'i');
+}
+function prepareAuction(groupId) { document.getElementById('sa-group').value = groupId; loadGroupForAuction(); openModal('scheduleAuction'); }
+
+// ══════════════════════════════════════════════════════════
+// COLLECTION SECTION
+// ══════════════════════════════════════════════════════════
+function initCollDate() { document.getElementById('collDate').value = new Date().toISOString().split('T')[0]; }
+
+function loadCollection() {
+  const date = document.getElementById('collDate').value;
+  const paid = allPayments.filter(p=>p.paid_date===date && p.status==='paid');
+  const overdue = allPayments.filter(p=>p.status==='overdue');
+
+  document.getElementById('collection-sub').textContent = `${date} · ₹${fmt(paid.reduce((s,p)=>s+(+p.total_paid||0),0))} collected`;
+
+  const tb = document.getElementById('coll-table');
+  tb.innerHTML = paid.length ? paid.map(p=>`<tr>
+    <td style="padding-left:16px"><div class="mc"><div class="av ${avatarColor(p.member?.full_name||'').cls}">${avatarColor(p.member?.full_name||'').initials}</div><div><div class="mn">${p.member?.full_name||'—'}</div></div></div></td>
+    <td>${p.chit_group?.name||'—'}</td>
+    <td><span style="font-family:'JetBrains Mono',monospace;font-size:10px">Month ${p.month_number}</span></td>
+    <td><span class="amt amt-c">₹${fmt(p.installment_amt)}</span></td>
+    <td><span class="amt ${(+p.penalty_amt)>0?'amt-r':''}">${(+p.penalty_amt)>0?'₹'+fmt(p.penalty_amt):'—'}</span></td>
+    <td>${modeIcon(p.payment_mode)}</td>
+    <td><span class="badge badge-active"><span class="dot"></span>Paid</span></td>
+    <td><button class="btn btn-ghost btn-xs" onclick="generateReceipt('${p.id}')">🧾</button></td>
+  </tr>`).join('') : '<tr><td colspan="8" class="tbl-empty">No collections for this date</td></tr>';
+
+  const ob = document.getElementById('overdue-table');
+  ob.innerHTML = overdue.length ? overdue.map(p=>`<tr>
+    <td style="padding-left:16px"><div class="mc"><div class="av av-r">${(p.member?.full_name||'?')[0]}</div><div><div class="mn">${p.member?.full_name||'—'}</div></div></div></td>
+    <td>${p.chit_group?.name||'—'}</td>
+    <td>Month ${p.month_number}</td>
+    <td><span style="color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace">${p.due_date||'—'}</span></td>
+    <td><span class="amt amt-r">₹${fmt(p.installment_amt)}</span></td>
+    <td><span class="amt amt-r">${(+p.penalty_amt)>0?'₹'+fmt(p.penalty_amt):'—'}</span></td>
+    <td><button class="btn btn-red btn-xs" onclick="sendReminder('${p.member_id}')">💬 Remind</button></td>
+  </tr>`).join('') : '<tr><td colspan="7" class="tbl-empty" style="color:var(--accent)">✅ No overdue payments!</td></tr>';
+
+  // Breakdown
+  const modes = {cash:0,upi:0,bank_transfer:0,cheque:0};
+  paid.forEach(p=>{ if(p.payment_mode) modes[p.payment_mode]=(modes[p.payment_mode]||0)+(+p.total_paid||0); });
+  document.getElementById('coll-breakdown').innerHTML = `
+    <div style="display:grid;gap:8px;font-size:11px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>💵 Cash</span><span class="amt amt-c">₹${fmt(modes.cash)}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>📱 UPI</span><span class="amt amt-c">₹${fmt(modes.upi)}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px"><span>🏦 Bank Transfer</span><span class="amt amt-c">₹${fmt(modes.bank_transfer)}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border)"><strong>Total</strong><span class="amt amt-c" style="font-size:14px">₹${fmt(Object.values(modes).reduce((a,b)=>a+b,0))}</span></div>
+    </div>`;
+
+  const mb = document.getElementById('mode-breakdown');
+  mb.innerHTML = `
+    <div style="display:grid;gap:8px">
+      ${Object.entries({cash:'💵 Cash',upi:'📱 UPI',bank_transfer:'🏦 Bank',cheque:'📄 Cheque'}).map(([k,lbl])=>`
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:11px;width:80px">${lbl}</div>
+        <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:var(--accent);border-radius:3px;width:${Math.min(100,(modes[k]/(Object.values(modes).reduce((a,b)=>a+b,1)||1))*100)}%"></div></div>
+        <div class="amt" style="font-size:10px;width:50px;text-align:right">₹${fmt(modes[k])}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function calcPenalty() {
+  const base = +document.getElementById('pen-base').value||0;
+  const days = +document.getElementById('pen-days').value||0;
+  const penalty = Math.round(base*0.05*(days/30)*100)/100;
+  document.getElementById('pen-base-d').textContent = '₹'+fmt(base);
+  document.getElementById('pen-amt').textContent = '₹'+fmt(penalty);
+  document.getElementById('pen-total').textContent = '₹'+fmt(base+penalty);
+}
+
+async function savePayment() {
+  const memberId = document.getElementById('cp-member').value;
+  const groupId = document.getElementById('cp-group').value;
+  const month = document.getElementById('cp-month').value;
+  const mode = document.getElementById('cp-mode').value;
+  const amount = +document.getElementById('cp-amount').value;
+  if (!memberId||!groupId||!amount) { toast('Fill all required fields', 'e'); return; }
+
+  const today = new Date().toISOString().split('T')[0];
+  const mem = allMembers.find(m=>m.id===memberId);
+  const grp = allChits.find(c=>c.id===groupId);
+  const pmt = {
+    id:'p'+(Date.now()), member_id:memberId, chit_group_id:groupId,
+    month_number:+month||1, installment_amt:amount, penalty_amt:0, total_paid:amount,
+    payment_mode:mode, paid_date:today, status:'paid', branch_id:activeBranchId||'br1',
+    upi_ref:document.getElementById('cp-ref').value,
+    receipt_number:'RCP-'+new Date().getFullYear()+'-'+String(allPayments.filter(p=>p.status==='paid').length+1).padStart(6,'0'),
+    member:{full_name:mem?.full_name, member_code:mem?.member_code},
+    chit_group:{name:grp?.name}
+  };
+
+  if (DEMO_MODE) { allPayments.unshift(pmt); }
+  else {
+    const { data, error } = await sbInsert('payments', {
+      member_id: memberId, chit_group_id: groupId,
+      month_number: +month||1, installment_amt: amount,
+      penalty_amt: 0, total_paid: amount,
+      payment_mode: mode, paid_date: today, status: 'paid',
+      branch_id: activeBranchId || null,
+      upi_ref: document.getElementById('cp-ref').value || null,
+      notes: document.getElementById('cp-notes').value || null,
+    });
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+    allPayments.unshift(pmt); // keep local copy with joined names for rendering
+  }
+
+  toast(`✅ Payment recorded! Receipt ${pmt.receipt_number}. WhatsApp queued.`, 's');
+  closeModal('addCollection'); clearForm(['cp-amount','cp-ref','cp-notes']);
+  renderDashboard(); loadCollection(); updateNavBadges();
+}
+
+function loadMemberPayments() {}
+function loadGroupMonths() {
+  const gid = document.getElementById('cp-group').value;
+  const g = allChits.find(c=>c.id===gid);
+  const sel = document.getElementById('cp-month');
+  if (!g) { sel.innerHTML='<option>Select group first</option>'; return; }
+  sel.innerHTML = Array.from({length:g.duration_months},(_, i)=>`<option value="${i+1}">Month ${i+1}</option>`).join('');
+  if (!document.getElementById('cp-amount').value) document.getElementById('cp-amount').value = g.monthly_installment;
+}
+function generateReceipt(id) { const p=allPayments.find(p=>p.id===id); toast(`🧾 Receipt ${p?.receipt_number||id} — PDF generation (needs pdfkit backend)`, 'i'); }
+function printRegister() { window.print(); }
+function sendBulkReminders() {
+  const count = allPayments.filter(p=>p.status==='overdue').length;
+  toast(`📱 ${count} WhatsApp reminders queued!`, 's');
+}
+
+// ══════════════════════════════════════════════════════════
+// AUCTION SECTION
+// ══════════════════════════════════════════════════════════
+function renderAuctions() {
+  const all = allAuctions;
+  const open = all.filter(a=>a.status==='open');
+  const scheduled = all.filter(a=>a.status==='scheduled');
+  const completed = all.filter(a=>a.status==='completed');
+
+  const totalDist = completed.reduce((s,a)=>s+(+a.dividend_per_member||0)*(+(allChits.find(c=>c.id===a.chit_group_id)?.num_members)||0),0);
+  const totalComm = completed.reduce((s,a)=>s+(+a.foreman_commission||0),0);
+
+  document.getElementById('auc-total').textContent = all.length;
+  document.getElementById('auc-distributed').textContent = '₹'+fmt(totalDist);
+  document.getElementById('auc-commission').textContent = '₹'+fmt(totalComm);
+  document.getElementById('auc-upcoming').textContent = scheduled.length + open.length;
+
+  // Open auctions
+  document.getElementById('open-auctions').innerHTML = open.length ? open.map(a=>`
+    <div class="auc-card" style="margin-bottom:10px">
+      <div class="auc-hd"><div><div style="font-weight:800;font-size:14px">🔴 ${a.chit_group?.name} — Month ${a.month_number}</div><div style="font-size:10px;color:var(--txt3)">${a.scheduled_date}</div></div>
+      <span class="badge badge-open">OPEN</span></div>
+      <div class="bid-grid">
+        <div class="bid-item"><div class="bid-lbl">Chit Value</div><div class="bid-val" style="color:var(--gold);font-size:15px">₹${fmt(a.chit_value)}</div></div>
+        <div class="bid-item"><div class="bid-lbl">Suggested Min</div><div class="bid-val" style="color:var(--accent);font-size:15px">₹${fmt(Math.floor(a.chit_value*0.85))}</div></div>
+        <div class="bid-item"><div class="bid-lbl">Actions</div><div class="bid-val" style="font-size:12px"><button class="btn btn-gold btn-sm" onclick="openBidModal('${a.id}')">+ Bid</button></div></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="viewBids('${a.id}')">View Bids</button>
+        <button class="btn btn-primary btn-sm" onclick="openFinalizeModal('${a.id}')">✅ Finalize Auction</button>
+      </div>
+    </div>`).join('') : '<div style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">No open auctions</div>';
+
+  // Scheduled table
+  const stb = document.getElementById('auctions-table');
+  stb.innerHTML = scheduled.length ? scheduled.map(a=>`<tr>
+    <td style="padding-left:16px"><strong>${a.chit_group?.name||'—'}</strong></td>
+    <td>Month ${a.month_number}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${a.scheduled_date}</td>
+    <td><span class="amt amt-g">₹${fmt(a.chit_value)}</span></td>
+    <td><span class="badge badge-upcoming"><span class="dot"></span>Scheduled</span></td>
+    <td style="display:flex;gap:4px"><button class="btn btn-gold btn-xs" onclick="openAuction('${a.id}')">Open Bidding</button><button class="btn btn-ghost btn-xs" onclick="cancelAuction('${a.id}')">Cancel</button></td>
+  </tr>`).join('') : '<tr><td colspan="6" class="tbl-empty">No scheduled auctions</td></tr>';
+
+  // Completed table
+  const ctb = document.getElementById('completed-auctions');
+  ctb.innerHTML = completed.length ? completed.map(a=>`<tr>
+    <td style="padding-left:16px"><strong>${a.chit_group?.name||'—'}</strong></td>
+    <td>Month ${a.month_number}</td>
+    <td><div class="mc"><div class="av av-g">${(a.winner?.full_name||'?')[0]}</div><div class="mn">${a.winner?.full_name||'—'}</div></div></td>
+    <td><span class="amt amt-g">₹${fmt(a.winning_bid_amt)}</span></td>
+    <td><span class="amt amt-c">₹${fmt(a.dividend_per_member)}/member</span></td>
+    <td><span class="amt amt-r">₹${fmt(a.foreman_commission)}</span></td>
+  </tr>`).join('') : '<tr><td colspan="6" class="tbl-empty">No completed auctions yet</td></tr>';
+
+  // History
+  document.getElementById('auc-history').innerHTML = completed.slice(0,4).map(a=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:12px;font-weight:700">${a.chit_group?.name} — Month ${a.month_number}</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:2px">Winner: ${a.winner?.full_name||'—'} · ₹${fmt(a.winning_bid_amt)}</div></div>
+      <div style="text-align:right"><div class="amt amt-c" style="font-size:11px">Div ₹${fmt(a.dividend_per_member)}</div><div style="font-size:9px;color:var(--txt3);margin-top:2px">${a.scheduled_date}</div></div>
+    </div>`).join('') || '<div style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">No auction history</div>';
+}
+
+function calcAuction() {
+  const cv = +document.getElementById('calc-cv').value||0;
+  const nm = +document.getElementById('calc-nm').value||1;
+  const bid = +document.getElementById('calc-bid').value||0;
+  const comm = +document.getElementById('calc-comm').value||5;
+  if (!cv||!bid) return;
+  const discount = cv - bid;
+  const foremanAmt = cv * comm/100;
+  const pool = discount - foremanAmt;
+  const div = pool/nm;
+  document.getElementById('calc-discount').textContent = '₹'+fmt(discount);
+  document.getElementById('calc-foreman').textContent = '₹'+fmt(foremanAmt);
+  document.getElementById('calc-pool').textContent = '₹'+fmt(pool);
+  document.getElementById('calc-div').textContent = pool>0?'₹'+fmt(Math.floor(div*100)/100):'Invalid bid';
+  document.getElementById('calc-winner').textContent = '₹'+fmt(bid);
+}
+
+function loadGroupForAuction() {
+  const gid = document.getElementById('sa-group').value;
+  const g = allChits.find(c=>c.id===gid);
+  if (g) {
+    document.getElementById('sa-value').value = `₹${fmt(g.chit_value)} (${g.num_members} members × ₹${fmt(g.monthly_installment)})`;
+    if (!document.getElementById('sa-month').value) document.getElementById('sa-month').value = g.current_month;
+  }
+}
+
+async function saveAuction() {
+  const gid = document.getElementById('sa-group').value;
+  const month = +document.getElementById('sa-month').value;
+  const date = document.getElementById('sa-date').value;
+  if (!gid||!month||!date) { toast('Fill all required fields', 'e'); return; }
+  const g = allChits.find(c=>c.id===gid);
+  const row = { chit_group_id:gid, month_number:month, scheduled_date:date, chit_value:g?.chit_value||0, status:'scheduled', notes:document.getElementById('sa-notes').value||null };
+  const localAuc = { ...row, id:'a'+Date.now(), chit_group:{name:g?.name||''} };
+  if (DEMO_MODE) { allAuctions.push(localAuc); }
+  else {
+    const { data, error } = await sbInsert('auctions', row);
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+    allAuctions.push(localAuc);
+  }
+  toast(`✅ Auction scheduled — ${g?.name} Month ${month}`, 's');
+  closeModal('scheduleAuction'); renderAuctions(); updateNavBadges();
+}
+
+async function openAuction(id) {
+  if (DEMO_MODE) { const a=allAuctions.find(a=>a.id===id); if(a)a.status='open'; }
+  else { await sbUpdate('auctions', {id}, {status:'open'}); const a=allAuctions.find(a=>a.id===id); if(a)a.status='open'; }
+  toast('🔴 Auction opened for bidding!', 's'); renderAuctions();
+}
+
+function openBidModal(auctionId) {
+  currentAuctionId = auctionId;
+  const a = allAuctions.find(a=>a.id===auctionId);
+  if (!a) return;
+  document.getElementById('bid-modal-sub').textContent = `${a.chit_group?.name} — Month ${a.month_number} · Lowest bid wins`;
+  document.getElementById('bm-chit').textContent = '₹'+fmt(a.chit_value);
+  document.getElementById('bm-min').textContent = '₹'+fmt(Math.floor(a.chit_value*0.85));
+  openModal('submitBid');
+}
+
+function previewBid() {
+  const a = allAuctions.find(a=>a.id===currentAuctionId);
+  if (!a) return;
+  const bid = +document.getElementById('bid-amount').value||0;
+  const discount = a.chit_value - bid;
+  const comm = a.chit_value*0.05;
+  const pool = discount - comm;
+  const nm = allChits.find(c=>c.id===a.chit_group_id)?.num_members||20;
+  document.getElementById('bid-discount').textContent = bid?'₹'+fmt(discount):'—';
+  document.getElementById('bid-other-div').textContent = pool>0?'₹'+fmt(Math.floor(pool/nm*100)/100):'—';
+}
+
+async function saveBid() {
+  const memberId = document.getElementById('bid-member').value;
+  const amount = +document.getElementById('bid-amount').value;
+  if (!memberId||!amount) { toast('Fill member and bid amount', 'e'); return; }
+  const mem = allMembers.find(m=>m.id===memberId);
+  const a = allAuctions.find(a=>a.id===currentAuctionId);
+  if (amount >= a.chit_value) { toast('Bid must be less than ₹'+fmt(a.chit_value), 'e'); return; }
+  const bid = { auction_id:currentAuctionId, member_id:memberId, bid_amount:amount, is_winner:false };
+  if (!DEMO_MODE) {
+    const { error } = await sbInsert('auction_bids', bid);
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+  }
+  if (!a.bids) a.bids = [];
+  a.bids.push({ ...bid, member:{full_name:mem?.full_name} });
+  toast(`✅ Bid ₹${fmt(amount)} submitted for ${mem?.full_name}!`, 's');
+  closeModal('submitBid'); renderAuctions();
+}
+
+function viewBids(id) {
+  const a = allAuctions.find(a=>a.id===id);
+  const bids = (a?.bids||[]).sort((x,y)=>x.bid_amount-y.bid_amount);
+  toast(bids.length?`${bids.length} bids — Lowest: ₹${fmt(bids[0]?.bid_amount)} by ${bids[0]?.member?.full_name}`:'No bids yet', 'i');
+}
+
+function openFinalizeModal(id) {
+  currentAuctionId = id;
+  const a = allAuctions.find(a=>a.id===id);
+  const bids = (a?.bids||[]).sort((x,y)=>x.bid_amount-y.bid_amount);
+  const winner = bids[0];
+  document.getElementById('fin-sub').textContent = `${a?.chit_group?.name} — Month ${a?.month_number}`;
+  document.getElementById('fin-bid').value = winner?.bid_amount || '';
+  document.getElementById('fin-results').innerHTML = winner
+    ? `<div class="auc-card"><strong>🏆 Winner: ${winner?.member?.full_name||'Unknown'}</strong> — ₹${fmt(winner?.bid_amount)}<br><div style="font-size:10px;color:var(--txt3);margin-top:4px">${(a?.bids||[]).length} bids</div></div>`
+    : '<div class="alert alert-gold">⚠️ No bids. Enter bid manually (lot draw).</div>';
+  previewFinalize();
+  openModal('finalizeAuction');
+}
+
+function previewFinalize() {
+  const a = allAuctions.find(a=>a.id===currentAuctionId);
+  const g = allChits.find(c=>c.id===a?.chit_group_id);
+  const bid = +document.getElementById('fin-bid').value||0;
+  if (!bid||!a) return;
+  const discount = a.chit_value - bid;
+  const comm = a.chit_value * (g?.foreman_commission_pct||5)/100;
+  const pool = discount - comm;
+  const div = pool / (g?.num_members||20);
+  document.getElementById('fin-discount').textContent = '₹'+fmt(discount);
+  document.getElementById('fin-comm').textContent = '₹'+fmt(comm);
+  document.getElementById('fin-pool').textContent = '₹'+fmt(pool);
+  document.getElementById('fin-div').textContent = pool>0?'₹'+fmt(Math.floor(div*100)/100):'Invalid';
+  document.getElementById('fin-winner').textContent = '₹'+fmt(bid);
+}
+
+async function confirmFinalize() {
+  const a = allAuctions.find(a=>a.id===currentAuctionId);
+  const g = allChits.find(c=>c.id===a?.chit_group_id);
+  const bid = +document.getElementById('fin-bid').value;
+  if (!bid) { toast('Enter winning bid amount', 'e'); return; }
+  const bids = (a?.bids||[]).sort((x,y)=>x.bid_amount-y.bid_amount);
+  const winner = bids[0];
+  const comm = a.chit_value * (g?.foreman_commission_pct||5)/100;
+  const discount = a.chit_value - bid;
+  const pool = discount - comm;
+  const div = Math.floor(pool/(g?.num_members||20)*100)/100;
+  const updates = { status:'completed', winning_bid_amt:bid, winner_member_id:winner?.member_id||null, foreman_commission:comm, dividend_per_member:div, net_prize_amt:bid, conducted_date:new Date().toISOString().split('T')[0] };
+
+  if (DEMO_MODE) {
+    Object.assign(a, updates);
+    a.winner = { full_name: winner?.member?.full_name||'Lot Draw' };
+  } else {
+    const { error } = await sbUpdate('auctions', {id: currentAuctionId}, updates);
+    if (error) { toast('Error: '+error.message, 'e'); return; }
+    Object.assign(a, updates);
+    a.winner = { full_name: winner?.member?.full_name||'Lot Draw' };
+  }
+  toast(`🏆 Finalized! Winner ₹${fmt(bid)} · Dividend ₹${fmt(div)}/member`, 's');
+  closeModal('finalizeAuction'); renderAuctions();
+}
+
+function cancelAuction(id) {
+  if (!confirm('Cancel this auction?')) return;
+  if (DEMO_MODE) { const a=allAuctions.find(a=>a.id===id); if(a)a.status='cancelled'; }
+  else { sbUpdate('auctions', {id}, {status:'cancelled'}); const a=allAuctions.find(a=>a.id===id); if(a)a.status='cancelled'; }
+  toast('Auction cancelled', 'i'); renderAuctions();
+}
+
+// ══════════════════════════════════════════════════════════
+// BRANCHES SECTION
+// ══════════════════════════════════════════════════════════
+function renderBranches() {
+  document.getElementById('br-total').textContent = allBranches.length;
+  document.getElementById('br-members').textContent = allMembers.length;
+  document.getElementById('br-groups').textContent = allChits.filter(c=>c.status==='active').length;
+  const totalColl = allPayments.filter(p=>p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0);
+  document.getElementById('br-collection').textContent = '₹'+fmt(totalColl);
+
+  const grid = document.getElementById('branches-grid');
+  grid.innerHTML = allBranches.map(b=>`
+    <div class="branch-card ${b.id===activeBranchId?'selected':''}" onclick="switchBranch('${b.id}','${b.name}')">
+      <div style="font-size:22px;margin-bottom:10px">🏢</div>
+      <div style="font-size:14px;font-weight:800">${b.name}</div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:2px;font-family:'JetBrains Mono',monospace">${b.code} · ${b.city||'—'}</div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">
+        <div style="background:var(--surface);padding:8px;border-radius:6px"><div style="color:var(--txt3)">Members</div><div style="font-weight:700;margin-top:2px">${allMembers.filter(m=>m.branch_id===b.id).length}</div></div>
+        <div style="background:var(--surface);padding:8px;border-radius:6px"><div style="color:var(--txt3)">Groups</div><div style="font-weight:700;margin-top:2px">${allChits.filter(c=>c.branch_id===b.id).length}</div></div>
+      </div>
+      ${b.id===activeBranchId?'<div style="margin-top:10px;font-size:10px;color:var(--accent);font-weight:700">● Active Branch</div>':''}
+    </div>`).join('') + `<div class="branch-card" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;cursor:pointer" onclick="openModal('addBranch')">
+      <div style="font-size:28px;opacity:.3">+</div><div style="font-size:12px;color:var(--txt3);margin-top:6px">Add Branch</div>
+    </div>`;
+
+  const btb = document.getElementById('branch-table');
+  btb.innerHTML = allBranches.map(b=>{
+    const bMembers = allMembers.filter(m=>m.branch_id===b.id).length;
+    const bGroups = allChits.filter(c=>c.branch_id===b.id).length;
+    const bColl = allPayments.filter(p=>p.branch_id===b.id&&p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0);
+    const bPending = allPayments.filter(p=>p.branch_id===b.id&&p.status==='overdue').reduce((s,p)=>s+(+p.installment_amt||0),0);
+    const bComm = allAuctions.filter(a=>allChits.find(c=>c.id===a.chit_group_id&&c.branch_id===b.id)&&a.status==='completed').reduce((s,a)=>s+(+a.foreman_commission||0),0);
+    return `<tr>
+      <td style="padding-left:16px"><strong>${b.name}</strong><div style="font-size:9px;color:var(--txt3);font-family:'JetBrains Mono',monospace">${b.code}</div></td>
+      <td>${bMembers}</td><td>${bGroups}</td>
+      <td><span class="amt amt-c">₹${fmt(bColl)}</span></td>
+      <td><span class="amt amt-r">${bPending?'₹'+fmt(bPending):'—'}</span></td>
+      <td><span class="amt amt-g">₹${fmt(bComm)}</span></td>
+      <td><span class="badge ${b.is_active!==false?'badge-active':'badge-overdue'}"><span class="dot"></span>${b.is_active!==false?'Active':'Inactive'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function switchBranch(id, name) {
+  activeBranchId = id;
+  document.getElementById('activeBranchName').textContent = name;
+  toast(`Switched to ${name}`, 's');
+  renderBranches();
+}
+
+async function saveBranch() {
+  const name = document.getElementById('br-name').value.trim();
+  const code = document.getElementById('br-code').value.trim().toUpperCase();
+  if (!name||!code) { toast('Name and code required', 'e'); return; }
+  const row = { name, code, city:document.getElementById('br-city').value||null, phone:document.getElementById('br-phone').value||null, address:document.getElementById('br-address').value||null, gstin:document.getElementById('br-gstin').value||null, is_active:true };
+  if (DEMO_MODE) { allBranches.push({...row, id:'br'+Date.now()}); }
+  else {
+    const { data, error } = await sbInsert('branches', row);
+    if (error) { toast('Error: '+(error.message||JSON.stringify(error)), 'e'); return; }
+    allBranches.push(Array.isArray(data)?data[0]:data);
+  }
+  toast(`✅ Branch "${name}" created!`, 's');
+  closeModal('addBranch'); renderBranches();
+}
+
+// ══════════════════════════════════════════════════════════
+// ANALYTICS SECTION
+// ══════════════════════════════════════════════════════════
+function loadAnalytics() {
+  const totalPaid = allPayments.filter(p=>p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0);
+  const totalComm = allAuctions.filter(a=>a.status==='completed').reduce((s,a)=>s+(+a.foreman_commission||0),0);
+  const totalDiv = allAuctions.filter(a=>a.status==='completed').reduce((s,a)=>s+(+a.dividend_per_member||0)*(+(allChits.find(c=>c.id===a.chit_group_id)?.num_members)||0),0);
+  const totalPen = allPayments.reduce((s,p)=>s+(+p.penalty_amt||0),0);
+
+  document.getElementById('an-revenue').textContent = '₹'+fmt(totalPaid);
+  document.getElementById('an-commission').textContent = '₹'+fmt(totalComm);
+  document.getElementById('an-dividends').textContent = '₹'+fmt(totalDiv);
+  document.getElementById('an-penalties').textContent = '₹'+fmt(totalPen);
+
+  // Monthly chart (mock data for demo)
+  const months = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const vals = [180000,220000,195000,240000,50000,0,0,0,0,0,0,0];
+  const max = Math.max(...vals,1);
+  const chart = document.getElementById('monthly-chart');
+  chart.innerHTML = months.map((m,i)=>`<div class="bar-w"><div class="bar" style="height:${Math.max(4,(vals[i]/max)*100)}%;background:${vals[i]?'var(--accent)':'rgba(30,45,64,.5)'};opacity:${vals[i]?1:.4}"></div><div class="bar-lbl">${m}</div></div>`).join('');
+
+  // Mode chart
+  const modes = {Cash:85000,UPI:125000,'Bank':30000};
+  const mTotal = Object.values(modes).reduce((a,b)=>a+b,0);
+  document.getElementById('mode-chart').innerHTML = `<div style="display:grid;gap:10px">` + Object.entries(modes).map(([k,v])=>`
+    <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>${k}</span><span class="amt">${Math.round(v/mTotal*100)}%</span></div>
+    <div style="background:var(--border);border-radius:4px;height:8px"><div style="height:100%;border-radius:4px;background:var(--accent);width:${v/mTotal*100}%"></div></div></div>`).join('') + '</div>';
+
+  // Top members
+  const tmtb = document.getElementById('top-members');
+  const memberTotals = allMembers.map(m=>({...m,total:allPayments.filter(p=>p.member_id===m.id&&p.status==='paid').reduce((s,p)=>s+(+p.total_paid||0),0)})).sort((a,b)=>b.total-a.total).slice(0,5);
+  tmtb.innerHTML = memberTotals.map((m,i)=>`<tr><td style="padding-left:16px"><div class="mc"><div class="av ${avatarColor(m.full_name).cls}">${avatarColor(m.full_name).initials}</div><div class="mn">${m.full_name}</div></div></td><td>—</td><td><span class="amt amt-c">₹${fmt(m.total)}</span></td><td><span class="badge badge-active">On Time</span></td></tr>`).join('') || '<tr><td colspan="4" class="tbl-empty">No data</td></tr>';
+
+  // Auction profit
+  const aptb = document.getElementById('auction-profit');
+  const byGroup = allChits.map(g=>{
+    const aucs = allAuctions.filter(a=>a.chit_group_id===g.id&&a.status==='completed');
+    const avgDisc = aucs.length ? aucs.reduce((s,a)=>s+(g.chit_value-(+a.winning_bid_amt||0)),0)/aucs.length : 0;
+    const comm = aucs.reduce((s,a)=>s+(+a.foreman_commission||0),0);
+    return {...g,aucs:aucs.length,avgDisc,comm};
+  }).filter(g=>g.aucs>0);
+  aptb.innerHTML = byGroup.map(g=>`<tr><td style="padding-left:16px"><strong>${g.name}</strong></td><td>${g.aucs}</td><td><span class="amt">₹${fmt(Math.round(g.avgDisc))}</span></td><td><span class="amt amt-g">₹${fmt(g.comm)}</span></td></tr>`).join('') || '<tr><td colspan="4" class="tbl-empty">No completed auctions</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════
+// REPORTS SECTION
+// ══════════════════════════════════════════════════════════
+let currentReport = null;
+function genReport(type) {
+  currentReport = type;
+  document.getElementById('report-print-btn').style.display = 'inline-flex';
+  document.getElementById('report-dl-btn').style.display = 'inline-flex';
+  const titles = {collection_register:'Collection Register',member_outstanding:'Member Outstanding',member_ledger:'Member Ledger',auction_minutes:'Auction Minutes',dividend_dist:'Dividend Distribution',foreman_commission:'Foreman Commission Report',gst_report:'GST Report',branch_performance:'Branch Performance',profit_summary:'Profit Summary'};
+  document.getElementById('report-title').textContent = '📄 '+titles[type];
+  let html = '';
+  if (type==='collection_register') {
+    html = `<table class="tbl"><thead><tr><th>Member</th><th>Group</th><th>Month</th><th>Amount</th><th>Penalty</th><th>Mode</th><th>Date</th><th>Status</th></tr></thead><tbody>` +
+      allPayments.map(p=>`<tr><td>${p.member?.full_name||'—'}</td><td>${p.chit_group?.name||'—'}</td><td>${p.month_number}</td><td>₹${fmt(p.installment_amt)}</td><td>${p.penalty_amt>0?'₹'+fmt(p.penalty_amt):'—'}</td><td>${p.payment_mode||'—'}</td><td>${p.paid_date||p.due_date||'—'}</td><td><span class="badge ${p.status==='paid'?'badge-active':'badge-overdue'}">${p.status}</span></td></tr>`).join('') + '</tbody></table>';
+  } else if (type==='member_outstanding') {
+    const over = allMembers.map(m=>({...m,dues:allPayments.filter(p=>p.member_id===m.id&&p.status==='overdue')})).filter(m=>m.dues.length>0);
+    html = `<table class="tbl"><thead><tr><th>Member</th><th>Phone</th><th>Months Overdue</th><th>Total Due</th></tr></thead><tbody>` + over.map(m=>`<tr><td>${m.full_name}</td><td>${m.phone}</td><td>${m.dues.length}</td><td><span class="amt amt-r">₹${fmt(m.dues.reduce((s,p)=>s+(+p.installment_amt||0)+(+p.penalty_amt||0),0))}</span></td></tr>`).join('') + '</tbody></table>';
+  } else if (type==='foreman_commission') {
+    html = `<table class="tbl"><thead><tr><th>Group</th><th>Month</th><th>Chit Value</th><th>Winning Bid</th><th>Commission (5%)</th></tr></thead><tbody>` + allAuctions.filter(a=>a.status==='completed').map(a=>`<tr><td>${a.chit_group?.name||'—'}</td><td>${a.month_number}</td><td>₹${fmt(a.chit_value)}</td><td>₹${fmt(a.winning_bid_amt)}</td><td><span class="amt amt-g">₹${fmt(a.foreman_commission)}</span></td></tr>`).join('') + '</tbody></table>';
+  } else if (type==='dividend_dist') {
+    html = `<table class="tbl"><thead><tr><th>Group</th><th>Month</th><th>Dividend/Member</th><th>Members</th><th>Total Distributed</th></tr></thead><tbody>` + allAuctions.filter(a=>a.status==='completed').map(a=>{const g=allChits.find(c=>c.id===a.chit_group_id);return`<tr><td>${a.chit_group?.name||'—'}</td><td>${a.month_number}</td><td><span class="amt amt-c">₹${fmt(a.dividend_per_member)}</span></td><td>${g?.num_members||'—'}</td><td><span class="amt amt-g">₹${fmt((+a.dividend_per_member||0)*(g?.num_members||0))}</span></td></tr>`;}).join('') + '</tbody></table>';
+  } else {
+    html = `<div style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">📊 Report data for "${titles[type]}" — ${allPayments.length} records available</div>`;
+  }
+  document.getElementById('report-content').innerHTML = html;
+}
+
+function downloadReport() {
+  if (!currentReport) return;
+  const pmts = allPayments;
+  const csv = ['Member,Group,Month,Amount,Penalty,Mode,Date,Status',...pmts.map(p=>`${p.member?.full_name||''},${p.chit_group?.name||''},${p.month_number},${p.installment_amt},${p.penalty_amt||0},${p.payment_mode||''},${p.paid_date||''},${p.status}`)].join('\n');
+  downloadCSV(csv, currentReport+'.csv');
+}
+function printReport() { window.print(); }
+function exportReport() { downloadReport(); }
+function exportAnalytics() { toast('Analytics export — connect to backend for full PDF', 'i'); }
+
+// ══════════════════════════════════════════════════════════
+// GST SECTION
+// ══════════════════════════════════════════════════════════
+function calcGST(val) {
+  const v = +val||0;
+  const cgst = Math.round(v*0.09*100)/100;
+  const sgst = Math.round(v*0.09*100)/100;
+  document.getElementById('gst-prev-cgst').textContent = '₹'+fmt(cgst);
+  document.getElementById('gst-prev-sgst').textContent = '₹'+fmt(sgst);
+  document.getElementById('gst-prev-total').textContent = '₹'+fmt(v+cgst+sgst);
+  document.getElementById('gst-prev-tax').textContent = '₹'+fmt(v);
+}
+function calcGSTModal() {
+  const v = +document.getElementById('gi-taxable').value||0;
+  document.getElementById('gi-cgst').textContent = '₹'+fmt(Math.round(v*.09*100)/100);
+  document.getElementById('gi-sgst').textContent = '₹'+fmt(Math.round(v*.09*100)/100);
+  document.getElementById('gi-total').textContent = '₹'+fmt(Math.round(v*1.18*100)/100);
+}
+function renderGST() {
+  const invoices = allPayments.filter(p=>p.status==='paid').slice(0,10);
+  const taxable = invoices.reduce((s,p)=>s+(+p.total_paid||0),0);
+  document.getElementById('gst-taxable').textContent = '₹'+fmt(taxable);
+  document.getElementById('gst-collected').textContent = '₹'+fmt(Math.round(taxable*.18));
+  document.getElementById('gst-invoices').textContent = invoices.length;
+  const gstin = document.getElementById('cfg-gstin')?.value||'—';
+  document.getElementById('gst-gstin').textContent = gstin;
+
+  const tb = document.getElementById('gst-table');
+  tb.innerHTML = invoices.length ? invoices.map((p,i)=>`<tr>
+    <td style="padding-left:16px;font-family:'JetBrains Mono',monospace;font-size:10px">GST-2025-${String(i+1).padStart(4,'0')}</td>
+    <td>${p.member?.full_name||'—'}</td>
+    <td style="font-size:10px">${p.paid_date||'—'}</td>
+    <td>₹${fmt(p.total_paid)}</td>
+    <td>₹${fmt(Math.round(p.total_paid*.09))}</td>
+    <td>₹${fmt(Math.round(p.total_paid*.09))}</td>
+    <td><span class="amt amt-p">₹${fmt(Math.round(p.total_paid*1.18))}</span></td>
+    <td><button class="btn btn-purple btn-xs" onclick="toast('PDF generation requires pdfkit backend','i')">PDF</button></td>
+  </tr>`).join('') : '<tr><td colspan="8" class="tbl-empty">No invoices yet</td></tr>';
+}
+function exportGSTJSON() {
+  const data = { gstin:'—', period:'2025-04', invoices: allPayments.filter(p=>p.status==='paid').map((p,i)=>({invoice_no:`GST-2025-${String(i+1).padStart(4,'0')}`,member:p.member?.full_name,taxable_value:p.total_paid,cgst:Math.round(p.total_paid*.09),sgst:Math.round(p.total_paid*.09),total:Math.round(p.total_paid*1.18)})) };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gst_export.json'; a.click();
+}
+async function saveGSTInvoice() {
+  toast('GST Invoice generated! PDF will download when pdfkit is integrated.', 's');
+  closeModal('addGSTInvoice');
+}
+
+// ══════════════════════════════════════════════════════════
+// AGENTS SECTION
+// ══════════════════════════════════════════════════════════
+function renderAgents() {
+  const agents = allMembers.slice(0,4).map((m,i)=>({...m,role:['agent','staff','branch_admin','agent'][i]}));
+  const tb = document.getElementById('agents-table');
+  tb.innerHTML = agents.map(a=>`<tr>
+    <td style="padding-left:16px"><div class="mc"><div class="av av-p">${a.full_name[0]}</div><div><div class="mn">${a.full_name}</div><div class="mid">${a.phone}</div></div></div></td>
+    <td><span class="badge badge-pending">${a.role}</span></td>
+    <td>${allBranches.find(b=>b.id===a.branch_id)?.name||'—'}</td>
+    <td>${Math.floor(Math.random()*15)+5}</td>
+    <td><span class="amt amt-c">₹${fmt(Math.floor(Math.random()*50000)+10000)}</span></td>
+    <td><span class="amt">₹${fmt(Math.floor(Math.random()*500000)+100000)}</span></td>
+    <td><span class="badge badge-active"><span class="dot"></span>Active</span></td>
+  </tr>`).join('') || '<tr><td colspan="7" class="tbl-empty">No agents yet</td></tr>';
+}
+
+async function saveAgent() {
+  const name = document.getElementById('ag-name').value.trim();
+  const email = document.getElementById('ag-email').value.trim();
+  const phone = document.getElementById('ag-phone').value.trim();
+  const role = document.getElementById('ag-role').value;
+  const pass = document.getElementById('ag-pass').value;
+  if (!name||!email||!phone) { toast('Fill required fields','e'); return; }
+  if (!DEMO_MODE && sb) {
+    const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{name,role,phone}}});
+    if (error) { toast('Auth error: '+error.message,'e'); return; }
+  }
+  toast(`Agent "${name}" created! Login: ${email}`, 's');
+  closeModal('addAgent'); renderAgents();
+}
+
+// ══════════════════════════════════════════════════════════
+// WHATSAPP
+// ══════════════════════════════════════════════════════════
+function selectTemplate(el, type) {
+  document.querySelectorAll('.wa-template').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  const previews = {
+    payment_receipt:`✅ <strong>ChitFlow Receipt</strong><br><br>Dear Kumar Selvam,<br>₹5,000 received for <strong>Group A</strong> (Month 13).<br>Receipt No: RCP-2025-000042<br>Date: ${new Date().toLocaleDateString('en-IN')}<br>Thank you! 🙏`,
+    due_reminder:`⏰ <strong>Payment Reminder</strong><br><br>Dear Kumar Selvam,<br>₹5,000 is due on <strong>01/05/2025</strong>.<br>Please pay on time to avoid penalty.<br>Pay via UPI: chitflow@upi`,
+    overdue_alert:`🚨 <strong>URGENT: Overdue Payment</strong><br><br>Dear Suresh T.,<br>₹5,250 (₹5,000 + ₹250 penalty) is overdue.<br>Please pay immediately.<br>Contact: 9841000001`,
+    auction_announcement:`🔨 <strong>Auction Notice</strong><br><br>Dear Member,<br>Monthly auction for <strong>Group C</strong> is on 30 May 2025.<br>Chit Value: ₹3,00,000<br>Register your bid before 5 PM.`,
+    winner_notification:`🏆 <strong>Congratulations!</strong><br><br>Dear Kumar Selvam,<br>You won the <strong>Group C</strong> auction!<br>Prize Amount: ₹2,70,000<br>Dividend to all: ₹500/member<br>Processing within 24 hours. 🎉`,
+    dividend_credit:`💰 <strong>Dividend Credit</strong><br><br>Dear Member,<br>₹500 dividend credited from Group A auction.<br>Your next installment: ₹4,500 (reduced from ₹5,000).`,
+  };
+  document.getElementById('wa-preview-text').innerHTML = previews[type]+'<div class="wa-meta">'+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' ✓✓</div>';
+}
+
+function previewWaMessage() { toast('Preview updated in panel', 'i'); }
+function sendBulkWA() {
+  const target = document.getElementById('wa-target').value;
+  const count = target==='all_overdue'?allPayments.filter(p=>p.status==='overdue').length:allMembers.length;
+  document.getElementById('wa-sent').textContent = count;
+  document.getElementById('wa-delivered').textContent = Math.floor(count*.95);
+  document.getElementById('wa-failed').textContent = Math.ceil(count*.05);
+  toast(`📱 ${count} WhatsApp messages queued!`, 's');
+}
+
+// ══════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════
+function nav(section) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el = document.getElementById('sec-'+section);
+  if (el) el.classList.add('active');
+  event?.currentTarget?.classList?.add('active');
+
+  const loaders = {
+    dashboard: renderDashboard,
+    members: renderMembers,
+    chits: renderChits,
+    collection: () => { initCollDate(); loadCollection(); },
+    auctions: renderAuctions,
+    branches: renderBranches,
+    analytics: loadAnalytics,
+    gst: renderGST,
+    reports: () => {},
+    agents: renderAgents,
+    whatsapp: () => {},
+    settings: () => {},
+  };
+  if (loaders[section]) loaders[section]();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById('m-'+id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById('m-'+id)?.classList.remove('open'); }
+document.querySelectorAll('.modal-ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');}));
+
+// ══════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════
+function fmt(n) { return Math.round(+n||0).toLocaleString('en-IN'); }
+function modeIcon(m) { return {cash:'💵 Cash',upi:'📱 UPI',bank_transfer:'🏦 Bank',cheque:'📄 Cheque'}[m]||'—'; }
+function avatarColor(name) {
+  const colors = ['av-g','av-p','av-o','av-r','av-b'];
+  const initials = (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const cls = colors[(name||'').charCodeAt(0)%colors.length];
+  return {initials, cls};
+}
+function clearForm(ids) { ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); }
+function downloadCSV(csv, filename) {
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+}
+function toast(msg, type='s') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+function logout() { localStorage.clear(); document.getElementById('configScreen').style.display='flex'; }
+function exportGSTJSON2() { exportGSTJSON(); }
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+
+// ── YOUR SUPABASE CREDENTIALS (hardcoded) ─────────────────
+const CF_URL = 'https://zpbzudvcbelprnjiscgj.supabase.co';
+const CF_KEY = 'sb_publishable_8edddMqlOitkPn0HE-FGug_5jXdcyw4';
+// ─────────────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Pre-fill settings panel
+  document.getElementById('sbUrl').value   = CF_URL;
+  document.getElementById('sbKey').value   = CF_KEY;
+  document.getElementById('set-url').value = CF_URL;
+  document.getElementById('set-key').value = CF_KEY;
+
+  // Set globals and launch immediately — no manual connect needed
+  sbUrl = CF_URL;
+  sbKey = CF_KEY;
+
+  launchApp();
+});
+</script>
+</body>
+</html>
